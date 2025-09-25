@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/imoveis")
-@CrossOrigin
 public class ImovelController {
 
     private final ImovelService imovelService;

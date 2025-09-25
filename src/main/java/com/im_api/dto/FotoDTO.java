@@ -4,7 +4,7 @@ public class FotoDTO {
 
     private Long id;
     private String nomeArquivo;
-    private String base64; // Dados da imagem em Base64
+    private String base64;
     private String tipoConteudo;
 
     public FotoDTO() {

@@ -1,57 +1,57 @@
 package com.im_api.controller;
 
+import com.im_api.dto.ClienteDTO;
 import com.im_api.model.Cliente;
-import com.im_api.repository.ClienteRepository;
+import com.im_api.service.ClienteService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/clientes")
-@CrossOrigin
 public class ClienteController {
 
-    private final ClienteRepository clienteRepository;
+    private final ClienteService clienteService;
 
-    public ClienteController(ClienteRepository clienteRepository) {
-        this.clienteRepository = clienteRepository;
+    public ClienteController(ClienteService clienteService) {
+        this.clienteService = clienteService;
     }
 
     @GetMapping
-    public List<Cliente> getAll() {
-        return clienteRepository.findAll();
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<ClienteDTO>> findAll() {
+        List<ClienteDTO> clientes = clienteService.findAll()
+                .stream()
+                .map(ClienteDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(clientes);
     }
 
     @PostMapping
-    public ResponseEntity<Cliente> create(@RequestBody Cliente cliente) {
-        Cliente saved = clienteRepository.save(cliente);
-        return ResponseEntity.ok(saved);
+    @Transactional
+    public ResponseEntity<ClienteDTO> create(@RequestBody ClienteDTO clienteDTO) {
+        Cliente savedCliente = clienteService.create(clienteDTO);
+        ClienteDTO responseDTO = new ClienteDTO(savedCliente);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> update(@PathVariable Long id, @RequestBody Cliente cliente) {
-        return clienteRepository.findById(id)
-                .map(existing -> {
-                    cliente.setId(existing.getId());
-                    return ResponseEntity.ok(clienteRepository.save(cliente));
-                }).orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Cliente> getById(@PathVariable Long id) {
-        return clienteRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @Transactional
+    public ResponseEntity<ClienteDTO> update(@PathVariable Long id, @RequestBody ClienteDTO clienteDTO) {
+        Cliente updatedCliente = clienteService.update(id, clienteDTO);
+        ClienteDTO responseDTO = new ClienteDTO(updatedCliente);
+        return ResponseEntity.ok(responseDTO);
     }
 
     @DeleteMapping("/{id}")
+    @Transactional
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (clienteRepository.existsById(id)) {
-            clienteRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+        clienteService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

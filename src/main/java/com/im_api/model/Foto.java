@@ -24,7 +24,8 @@ public class Foto {
     @JoinColumn(name = "imovel_id")
     private Imovel imovel;
 
-    public Foto() {}
+    public Foto() {
+    }
 
     public Foto(String nomeArquivo, byte[] dados, String tipoConteudo, Imovel imovel) {
         this.dados = dados;

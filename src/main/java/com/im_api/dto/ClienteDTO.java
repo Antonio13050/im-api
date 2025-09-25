@@ -1,55 +1,41 @@
-package com.im_api.model;
+package com.im_api.dto;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
+import com.im_api.model.Cliente;
+import com.im_api.model.Endereco;
+import com.im_api.model.Interesses;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "clientes")
-public class Cliente {
+public class ClienteDTO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String nome;
     private String email;
     private String telefone;
     private String cpfCnpj;
     private LocalDate dataNascimento;
-    private Long corretorId = 3L;
-
-
-    @CreationTimestamp
+    private Long corretorId;
     private LocalDateTime createdDate;
-
-    @Embedded
     private Endereco endereco;
-
-    @Embedded
     private Interesses interesses;
-
-    @Column(length = 1000)
     private String observacoes;
 
-    public Cliente() {
+    public ClienteDTO() {
     }
 
-    public Cliente(Long id, String nome, String email, String telefone, String cpfCnpj, LocalDate dataNascimento, Long corretorId, LocalDateTime createdDate, Endereco endereco, Interesses interesses, String observacoes
-    ) {
-        this.id = id;
-        this.nome = nome;
-        this.email = email;
-        this.telefone = telefone;
-        this.cpfCnpj = cpfCnpj;
-        this.dataNascimento = dataNascimento;
-        this.corretorId = corretorId;
-        this.createdDate = createdDate;
-        this.endereco = endereco;
-        this.interesses = interesses;
-        this.observacoes = observacoes;
+    public ClienteDTO(Cliente cliente) {
+        this.id = cliente.getId();
+        this.nome = cliente.getNome();
+        this.email = cliente.getEmail();
+        this.telefone = cliente.getTelefone();
+        this.cpfCnpj = cliente.getCpfCnpj();
+        this.dataNascimento = cliente.getDataNascimento();
+        this.corretorId = cliente.getCorretorId();
+        this.createdDate = cliente.getCreatedDate();
+        this.endereco = cliente.getEndereco();
+        this.interesses = cliente.getInteresses();
+        this.observacoes = cliente.getObservacoes();
     }
 
     public Long getId() {

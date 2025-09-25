@@ -1,6 +1,7 @@
 package com.im_api.model;
 
 import jakarta.persistence.*;
+
 import java.util.List;
 
 @Embeddable
@@ -21,7 +22,8 @@ public class Interesses {
 
     private String finalidade;
 
-    public Interesses() {}
+    public Interesses() {
+    }
 
     public Interesses(List<String> tiposImovel, Double faixaPrecoMin, Double faixaPrecoMax,
                       List<String> bairrosInteresse, String finalidade) {

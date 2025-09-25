@@ -6,4 +6,5 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public record NominatimPlace(
         String lat,
         String lon
-) { }
+) {
+}
