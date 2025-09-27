@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers("/geocode").permitAll()
                         .requestMatchers("/users").permitAll()
                         .requestMatchers("/processo-status-history/**").permitAll()
+                        .requestMatchers("/visitas/**").permitAll()
                         .requestMatchers("/documentos/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/**").permitAll()
