@@ -1,5 +1,6 @@
 package com.im_api.model;
 
+import com.im_api.model.enums.Perfil;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -21,6 +22,9 @@ public class Cliente {
     private LocalDate dataNascimento;
     private Long corretorId = 3L;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Perfil perfil = Perfil.CLIENTE;
 
     @CreationTimestamp
     private LocalDateTime createdDate;
@@ -37,7 +41,7 @@ public class Cliente {
     public Cliente() {
     }
 
-    public Cliente(Long id, String nome, String email, String telefone, String cpfCnpj, LocalDate dataNascimento, Long corretorId, LocalDateTime createdDate, Endereco endereco, Interesses interesses, String observacoes
+    public Cliente(Long id, String nome, String email, String telefone, String cpfCnpj, LocalDate dataNascimento, Long corretorId, Perfil perfil, LocalDateTime createdDate, Endereco endereco, Interesses interesses, String observacoes
     ) {
         this.id = id;
         this.nome = nome;
@@ -46,6 +50,7 @@ public class Cliente {
         this.cpfCnpj = cpfCnpj;
         this.dataNascimento = dataNascimento;
         this.corretorId = corretorId;
+        this.perfil = perfil;
         this.createdDate = createdDate;
         this.endereco = endereco;
         this.interesses = interesses;
@@ -106,6 +111,14 @@ public class Cliente {
 
     public void setCorretorId(Long corretorId) {
         this.corretorId = corretorId;
+    }
+
+    public Perfil getPerfil() {
+        return perfil;
+    }
+
+    public void setPerfil(Perfil perfil) {
+        this.perfil = perfil;
     }
 
     public LocalDateTime getCreatedDate() {

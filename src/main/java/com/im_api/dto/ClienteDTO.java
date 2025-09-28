@@ -16,6 +16,7 @@ public class ClienteDTO {
     private String cpfCnpj;
     private LocalDate dataNascimento;
     private Long corretorId;
+    private String perfil;
     private LocalDateTime createdDate;
     private Endereco endereco;
     private Interesses interesses;
@@ -32,6 +33,7 @@ public class ClienteDTO {
         this.cpfCnpj = cliente.getCpfCnpj();
         this.dataNascimento = cliente.getDataNascimento();
         this.corretorId = cliente.getCorretorId();
+        this.perfil = cliente.getPerfil() != null ? cliente.getPerfil().name() : null;
         this.createdDate = cliente.getCreatedDate();
         this.endereco = cliente.getEndereco();
         this.interesses = cliente.getInteresses();
@@ -92,6 +94,14 @@ public class ClienteDTO {
 
     public void setCorretorId(Long corretorId) {
         this.corretorId = corretorId;
+    }
+
+    public String getPerfil() {
+        return perfil;
+    }
+
+    public void setPerfil(String perfil) {
+        this.perfil = perfil;
     }
 
     public LocalDateTime getCreatedDate() {

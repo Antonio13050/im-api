@@ -3,6 +3,7 @@ package com.im_api.service;
 import com.im_api.dto.ClienteDTO;
 import com.im_api.model.Cliente;
 import com.im_api.model.User;
+import com.im_api.model.enums.Perfil;
 import com.im_api.repository.ClienteRepository;
 import com.im_api.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,12 +26,19 @@ public class ClienteService {
     }
 
     public Cliente create(ClienteDTO clienteDTO) {
-
         if (clienteDTO.getNome() == null || clienteDTO.getNome().isBlank()) {
             throw new IllegalArgumentException("O nome do cliente é obrigatório");
         }
         if (clienteDTO.getCorretorId() != null && !userRepository.existsById(clienteDTO.getCorretorId())) {
             throw new IllegalArgumentException("Corretor com ID " + clienteDTO.getCorretorId() + " não encontrado");
+        }
+        if (clienteDTO.getPerfil() == null || clienteDTO.getPerfil().isBlank()) {
+            throw new IllegalArgumentException("O perfil do cliente é obrigatório");
+        }
+        try {
+            Perfil.valueOf(clienteDTO.getPerfil().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Perfil inválido: " + clienteDTO.getPerfil());
         }
 
         System.out.println("Criando cliente com ClienteDTO: " + clienteDTO);
@@ -41,6 +49,7 @@ public class ClienteService {
         cliente.setCpfCnpj(clienteDTO.getCpfCnpj());
         cliente.setDataNascimento(clienteDTO.getDataNascimento());
         cliente.setCorretorId(clienteDTO.getCorretorId());
+        cliente.setPerfil(Perfil.valueOf(clienteDTO.getPerfil().toUpperCase()));
         cliente.setEndereco(clienteDTO.getEndereco());
         cliente.setInteresses(clienteDTO.getInteresses());
         cliente.setObservacoes(clienteDTO.getObservacoes());
@@ -56,6 +65,14 @@ public class ClienteService {
         }
         if (clienteDTO.getCorretorId() != null && !userRepository.existsById(clienteDTO.getCorretorId())) {
             throw new IllegalArgumentException("Corretor com ID " + clienteDTO.getCorretorId() + " não encontrado");
+        }
+        if (clienteDTO.getPerfil() == null || clienteDTO.getPerfil().isBlank()) {
+            throw new IllegalArgumentException("O perfil do cliente é obrigatório");
+        }
+        try {
+            Perfil.valueOf(clienteDTO.getPerfil().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Perfil inválido: " + clienteDTO.getPerfil());
         }
 
         Cliente cliente = clienteRepository.findById(id)
@@ -79,6 +96,7 @@ public class ClienteService {
         cliente.setCpfCnpj(clienteDTO.getCpfCnpj());
         cliente.setDataNascimento(clienteDTO.getDataNascimento());
         cliente.setCorretorId(clienteDTO.getCorretorId());
+        cliente.setPerfil(Perfil.valueOf(clienteDTO.getPerfil().toUpperCase()));
         cliente.setEndereco(clienteDTO.getEndereco());
         cliente.setInteresses(clienteDTO.getInteresses());
         cliente.setObservacoes(clienteDTO.getObservacoes());
@@ -95,7 +113,6 @@ public class ClienteService {
                 .map(role -> role.replace("SCOPE_", ""))
                 .orElseThrow(() -> new RuntimeException("Usuário sem role"));
 
-        System.out.println("Buscando clientes para userId: " + currentUserId + ", role: " + currentUserRole);
         if (currentUserRole.equals("ADMIN")) {
             return clienteRepository.findAll();
         } else if (currentUserRole.equals("GERENTE")) {
