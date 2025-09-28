@@ -1,9 +1,11 @@
 package com.im_api.model;
 
 import com.im_api.dto.LoginRequestDTO;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,6 +34,10 @@ public class User {
 
     @Column(name = "gerente_id")
     private Long gerenteId;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdDate;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
@@ -106,6 +112,14 @@ public class User {
 
     public void setGerenteId(Long gerenteId) {
         this.gerenteId = gerenteId;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
     }
 
     public Set<Role> getRoles() {
