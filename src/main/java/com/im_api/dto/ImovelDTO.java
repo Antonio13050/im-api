@@ -1,61 +1,108 @@
 package com.im_api.dto;
-
 import com.im_api.model.Endereco;
 import com.im_api.model.Imovel;
-
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
-
 public class ImovelDTO {
-
+    // Identificação
     private Long id;
+    private String codigo;
     private String titulo;
     private String descricao;
+    // Classificação
     private String tipo;
+    private String subtipo;
     private String finalidade;
     private String status;
+    private Boolean destaque;
+    private Boolean exclusividade;
     private LocalDateTime createdDate;
-
     private Endereco endereco;
-
-    private Double preco;
-    private Double area;
+    // Áreas
+    private Double areaTotal;
+    private Double areaConstruida;
+    private Double areaUtil;
+    private Integer anoConstrucao;
+    // Cômodos
     private Integer quartos;
+    private Integer suites;
     private Integer banheiros;
     private Integer vagas;
-
+    private Integer vagasCobertas;
+    private Integer andares;
+    // Comodidades
+    private List<String> comodidades;
+    // Financeiro
+    private Double precoVenda;
+    private Double precoAluguel;
+    private Double precoTemporada;
+    private Double valorCondominio;
+    private Double valorIptu;
+    private Double valorEntrada;
+    private Boolean aceitaFinanciamento;
+    private Boolean aceitaFgts;
+    private Boolean aceitaPermuta;
+    private Boolean posseImediata;
+    private Double comissaoVenda;
+    private Double comissaoAluguel;
+    // Documentação
+    private String situacaoDocumental;
+    private String observacoesInternas;
+    // Mídia
     private List<FotoDTO> fotos;
     private List<VideoDTO> videos;
-
+    private List<DocumentoImovelDTO> documentos;
+    // Responsáveis
+    private Long proprietarioId;
+    private Long inquilinoId;
     private Long clienteId;
     private Long corretorId;
-
-    public ImovelDTO() {
-    }
-
-    public ImovelDTO(String titulo, List<FotoDTO> fotos) {
-        this.titulo = titulo;
-        this.fotos = fotos;
-    }
-
+    public ImovelDTO() {}
     public ImovelDTO(Imovel imovel) {
         this.id = imovel.getId();
+        this.codigo = imovel.getCodigo();
         this.titulo = imovel.getTitulo();
         this.descricao = imovel.getDescricao();
         this.tipo = imovel.getTipo();
+        this.subtipo = imovel.getSubtipo();
         this.finalidade = imovel.getFinalidade();
         this.status = imovel.getStatus();
+        this.destaque = imovel.getDestaque();
+        this.exclusividade = imovel.getExclusividade();
         this.createdDate = imovel.getCreatedDate();
         this.endereco = imovel.getEndereco();
-        this.preco = imovel.getPreco();
-        this.area = imovel.getArea();
+        this.areaTotal = imovel.getAreaTotal();
+        this.areaConstruida = imovel.getAreaConstruida();
+        this.areaUtil = imovel.getAreaUtil();
+        this.anoConstrucao = imovel.getAnoConstrucao();
         this.quartos = imovel.getQuartos();
+        this.suites = imovel.getSuites();
         this.banheiros = imovel.getBanheiros();
         this.vagas = imovel.getVagas();
+        this.vagasCobertas = imovel.getVagasCobertas();
+        this.andares = imovel.getAndares();
+        this.comodidades = imovel.getComodidades();
+        this.precoVenda = imovel.getPrecoVenda();
+        this.precoAluguel = imovel.getPrecoAluguel();
+        this.precoTemporada = imovel.getPrecoTemporada();
+        this.valorCondominio = imovel.getValorCondominio();
+        this.valorIptu = imovel.getValorIptu();
+        this.valorEntrada = imovel.getValorEntrada();
+        this.aceitaFinanciamento = imovel.getAceitaFinanciamento();
+        this.aceitaFgts = imovel.getAceitaFgts();
+        this.aceitaPermuta = imovel.getAceitaPermuta();
+        this.posseImediata = imovel.getPosseImediata();
+        this.comissaoVenda = imovel.getComissaoVenda();
+        this.comissaoAluguel = imovel.getComissaoAluguel();
+        this.situacaoDocumental = imovel.getSituacaoDocumental();
+        this.observacoesInternas = imovel.getObservacoesInternas();
+        this.proprietarioId = imovel.getProprietarioId();
+        this.inquilinoId = imovel.getInquilinoId();
         this.clienteId = imovel.getClienteId();
         this.corretorId = imovel.getCorretorId();
+        // Mapear fotos
         this.fotos = imovel.getFotos().stream()
                 .map(foto -> new FotoDTO(
                         foto.getId(),
@@ -64,6 +111,7 @@ public class ImovelDTO {
                         Base64.getEncoder().encodeToString(foto.getDados())
                 ))
                 .collect(Collectors.toList());
+        // Mapear vídeos
         this.videos = imovel.getVideos().stream()
                 .map(video -> new VideoDTO(
                         video.getId(),
@@ -73,140 +121,149 @@ public class ImovelDTO {
                         video.getTamanho()
                 ))
                 .collect(Collectors.toList());
+        // Mapear documentos
+        this.documentos = imovel.getDocumentos().stream()
+                .map(doc -> new DocumentoImovelDTO(
+                        doc.getId(),
+                        doc.getNomeArquivo(),
+                        doc.getTipoDocumento(),
+                        doc.getTipoConteudo(),
+                        doc.getTamanho()
+                ))
+                .collect(Collectors.toList());
     }
+    // Getters e Setters para TODOS os campos
+    // (Gere automaticamente na sua IDE)
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getCodigo() { return codigo; }
+    public void setCodigo(String codigo) { this.codigo = codigo; }
 
-    public String getTitulo() {
-        return titulo;
-    }
+    public String getTitulo() { return titulo; }
+    public void setTitulo(String titulo) { this.titulo = titulo; }
 
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
 
-    public String getDescricao() {
-        return descricao;
-    }
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
 
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
+    public String getSubtipo() { return subtipo; }
+    public void setSubtipo(String subtipo) { this.subtipo = subtipo; }
 
-    public String getTipo() {
-        return tipo;
-    }
+    public String getFinalidade() { return finalidade; }
+    public void setFinalidade(String finalidade) { this.finalidade = finalidade; }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public String getFinalidade() {
-        return finalidade;
-    }
+    public Boolean getDestaque() { return destaque; }
+    public void setDestaque(Boolean destaque) { this.destaque = destaque; }
 
-    public void setFinalidade(String finalidade) {
-        this.finalidade = finalidade;
-    }
+    public Boolean getExclusividade() { return exclusividade; }
+    public void setExclusividade(Boolean exclusividade) { this.exclusividade = exclusividade; }
 
-    public String getStatus() {
-        return status;
-    }
+    public LocalDateTime getCreatedDate() { return createdDate; }
+    public void setCreatedDate(LocalDateTime createdDate) { this.createdDate = createdDate; }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    public Endereco getEndereco() { return endereco; }
+    public void setEndereco(Endereco endereco) { this.endereco = endereco; }
 
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
+    public Double getAreaTotal() { return areaTotal; }
+    public void setAreaTotal(Double areaTotal) { this.areaTotal = areaTotal; }
 
-    public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
+    public Double getAreaConstruida() { return areaConstruida; }
+    public void setAreaConstruida(Double areaConstruida) { this.areaConstruida = areaConstruida; }
 
-    public Endereco getEndereco() {
-        return endereco;
-    }
+    public Double getAreaUtil() { return areaUtil; }
+    public void setAreaUtil(Double areaUtil) { this.areaUtil = areaUtil; }
 
-    public void setEndereco(Endereco endereco) {
-        this.endereco = endereco;
-    }
+    public Integer getAnoConstrucao() { return anoConstrucao; }
+    public void setAnoConstrucao(Integer anoConstrucao) { this.anoConstrucao = anoConstrucao; }
 
-    public Double getPreco() {
-        return preco;
-    }
+    public Integer getQuartos() { return quartos; }
+    public void setQuartos(Integer quartos) { this.quartos = quartos; }
 
-    public void setPreco(Double preco) {
-        this.preco = preco;
-    }
+    public Integer getSuites() { return suites; }
+    public void setSuites(Integer suites) { this.suites = suites; }
 
-    public Double getArea() {
-        return area;
-    }
+    public Integer getBanheiros() { return banheiros; }
+    public void setBanheiros(Integer banheiros) { this.banheiros = banheiros; }
 
-    public void setArea(Double area) {
-        this.area = area;
-    }
+    public Integer getVagas() { return vagas; }
+    public void setVagas(Integer vagas) { this.vagas = vagas; }
 
-    public Integer getQuartos() {
-        return quartos;
-    }
+    public Integer getVagasCobertas() { return vagasCobertas; }
+    public void setVagasCobertas(Integer vagasCobertas) { this.vagasCobertas = vagasCobertas; }
 
-    public void setQuartos(Integer quartos) {
-        this.quartos = quartos;
-    }
+    public Integer getAndares() { return andares; }
+    public void setAndares(Integer andares) { this.andares = andares; }
 
-    public Integer getBanheiros() {
-        return banheiros;
-    }
+    public List<String> getComodidades() { return comodidades; }
+    public void setComodidades(List<String> comodidades) { this.comodidades = comodidades; }
 
-    public void setBanheiros(Integer banheiros) {
-        this.banheiros = banheiros;
-    }
+    public Double getPrecoVenda() { return precoVenda; }
+    public void setPrecoVenda(Double precoVenda) { this.precoVenda = precoVenda; }
 
-    public Integer getVagas() {
-        return vagas;
-    }
+    public Double getPrecoAluguel() { return precoAluguel; }
+    public void setPrecoAluguel(Double precoAluguel) { this.precoAluguel = precoAluguel; }
 
-    public void setVagas(Integer vagas) {
-        this.vagas = vagas;
-    }
+    public Double getPrecoTemporada() { return precoTemporada; }
+    public void setPrecoTemporada(Double precoTemporada) { this.precoTemporada = precoTemporada; }
 
-    public List<FotoDTO> getFotos() {
-        return fotos;
-    }
+    public Double getValorCondominio() { return valorCondominio; }
+    public void setValorCondominio(Double valorCondominio) { this.valorCondominio = valorCondominio; }
 
-    public void setFotos(List<FotoDTO> fotos) {
-        this.fotos = fotos;
-    }
+    public Double getValorIptu() { return valorIptu; }
+    public void setValorIptu(Double valorIptu) { this.valorIptu = valorIptu; }
 
-    public List<VideoDTO> getVideos() {
-        return videos;
-    }
-    public void setVideos(List<VideoDTO> videos) {
-        this.videos = videos;
-    }
+    public Double getValorEntrada() { return valorEntrada; }
+    public void setValorEntrada(Double valorEntrada) { this.valorEntrada = valorEntrada; }
 
-    public Long getClienteId() {
-        return clienteId;
-    }
+    public Boolean getAceitaFinanciamento() { return aceitaFinanciamento; }
+    public void setAceitaFinanciamento(Boolean aceitaFinanciamento) { this.aceitaFinanciamento = aceitaFinanciamento; }
 
-    public void setClienteId(Long clienteId) {
-        this.clienteId = clienteId;
-    }
+    public Boolean getAceitaFgts() { return aceitaFgts; }
+    public void setAceitaFgts(Boolean aceitaFgts) { this.aceitaFgts = aceitaFgts; }
 
-    public Long getCorretorId() {
-        return corretorId;
-    }
+    public Boolean getAceitaPermuta() { return aceitaPermuta; }
+    public void setAceitaPermuta(Boolean aceitaPermuta) { this.aceitaPermuta = aceitaPermuta; }
 
-    public void setCorretorId(Long corretorId) {
-        this.corretorId = corretorId;
-    }
+    public Boolean getPosseImediata() { return posseImediata; }
+    public void setPosseImediata(Boolean posseImediata) { this.posseImediata = posseImediata; }
+
+    public Double getComissaoVenda() { return comissaoVenda; }
+    public void setComissaoVenda(Double comissaoVenda) { this.comissaoVenda = comissaoVenda; }
+
+    public Double getComissaoAluguel() { return comissaoAluguel; }
+    public void setComissaoAluguel(Double comissaoAluguel) { this.comissaoAluguel = comissaoAluguel; }
+
+    public String getSituacaoDocumental() { return situacaoDocumental; }
+    public void setSituacaoDocumental(String situacaoDocumental) { this.situacaoDocumental = situacaoDocumental; }
+
+    public String getObservacoesInternas() { return observacoesInternas; }
+    public void setObservacoesInternas(String observacoesInternas) { this.observacoesInternas = observacoesInternas; }
+
+    public List<FotoDTO> getFotos() { return fotos; }
+    public void setFotos(List<FotoDTO> fotos) { this.fotos = fotos; }
+
+    public List<VideoDTO> getVideos() { return videos; }
+    public void setVideos(List<VideoDTO> videos) { this.videos = videos; }
+
+    public List<DocumentoImovelDTO> getDocumentos() { return documentos; }
+    public void setDocumentos(List<DocumentoImovelDTO> documentos) { this.documentos = documentos; }
+
+    public Long getProprietarioId() { return proprietarioId; }
+    public void setProprietarioId(Long proprietarioId) { this.proprietarioId = proprietarioId; }
+
+    public Long getInquilinoId() { return inquilinoId; }
+    public void setInquilinoId(Long inquilinoId) { this.inquilinoId = inquilinoId; }
+
+    public Long getClienteId() { return clienteId; }
+    public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
+
+    public Long getCorretorId() { return corretorId; }
+    public void setCorretorId(Long corretorId) { this.corretorId = corretorId; }
 }

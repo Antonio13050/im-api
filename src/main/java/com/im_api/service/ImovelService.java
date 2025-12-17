@@ -1,12 +1,9 @@
 package com.im_api.service;
-
 import com.im_api.dto.ImovelDTO;
-import com.im_api.model.Foto;
 import com.im_api.dto.FotoDTO;
 import com.im_api.dto.VideoDTO;
-import com.im_api.model.Imovel;
-import com.im_api.model.User;
-import com.im_api.model.Video;
+import com.im_api.dto.DocumentoImovelDTO;
+import com.im_api.model.*;
 import com.im_api.repository.ImovelRepository;
 import com.im_api.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -14,31 +11,40 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 @Service
 public class ImovelService {
-
     private final ImovelRepository imovelRepository;
     private final UserRepository userRepository;
-
     public ImovelService(ImovelRepository imovelRepository, UserRepository userRepository) {
         this.imovelRepository = imovelRepository;
         this.userRepository = userRepository;
     }
-
+    // Gerar código único para o imóvel
+    private String gerarCodigoImovel() {
+        Long count = imovelRepository.count() + 1;
+        return String.format("IMV-%05d", count);
+    }
     public ImovelDTO findById(Long id) {
         Imovel imovel = imovelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));
         return new ImovelDTO(imovel);
     }
+    public Imovel create(ImovelDTO imovelDTO,
+                         List<MultipartFile> fotos,
+                         List<MultipartFile> videos,
+                         List<MultipartFile> documentos) throws IOException {
 
-    public Imovel create(ImovelDTO imovelDTO, List<MultipartFile> fotos, List<MultipartFile> videos) throws IOException {
         Imovel imovel = new Imovel(imovelDTO);
+
+        // Gerar código automático se não fornecido
+        if (imovel.getCodigo() == null || imovel.getCodigo().isBlank()) {
+            imovel.setCodigo(gerarCodigoImovel());
+        }
+        // Processar fotos
         if (fotos != null && !fotos.isEmpty()) {
             for (MultipartFile file : fotos) {
                 Foto foto = new Foto(
@@ -50,6 +56,7 @@ public class ImovelService {
                 imovel.getFotos().add(foto);
             }
         }
+        // Processar vídeos
         if (videos != null && !videos.isEmpty()) {
             for (MultipartFile file : videos) {
                 Video video = new Video(
@@ -62,48 +69,89 @@ public class ImovelService {
                 imovel.getVideos().add(video);
             }
         }
+        // Processar documentos
+        if (documentos != null && !documentos.isEmpty()) {
+            for (MultipartFile file : documentos) {
+                DocumentoImovel doc = new DocumentoImovel(
+                        file.getOriginalFilename(),
+                        "outros", // tipo padrão
+                        file.getBytes(),
+                        file.getContentType(),
+                        file.getSize(),
+                        imovel
+                );
+                imovel.getDocumentos().add(doc);
+            }
+        }
         return imovelRepository.save(imovel);
     }
-
-    public Imovel update(Long id, ImovelDTO imovelDTO,
+    public Imovel update(Long id, ImovelDTO dto,
                          List<MultipartFile> fotos,
-                         List<MultipartFile> videos) throws IOException {
-
-        if (imovelDTO.getTitulo() == null || imovelDTO.getTitulo().isBlank()) {
-            throw new IllegalArgumentException("O título do imóvel é obrigatório");
-        }
-        if (imovelDTO.getPreco() == null) {
-            throw new IllegalArgumentException("O preço do imóvel é obrigatório");
-        }
-        if (imovelDTO.getEndereco() == null) {
-            throw new IllegalArgumentException("O endereço do imóvel é obrigatório");
-        }
+                         List<MultipartFile> videos,
+                         List<MultipartFile> documentos) throws IOException {
 
         Imovel imovel = imovelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));
+        // Atualizar campos básicos
+        imovel.setTitulo(dto.getTitulo());
+        imovel.setDescricao(dto.getDescricao());
+        imovel.setTipo(dto.getTipo());
+        imovel.setSubtipo(dto.getSubtipo());
+        imovel.setFinalidade(dto.getFinalidade());
+        imovel.setStatus(dto.getStatus());
+        imovel.setDestaque(dto.getDestaque());
+        imovel.setExclusividade(dto.getExclusividade());
+        imovel.setEndereco(dto.getEndereco());
 
-        imovel.setTitulo(imovelDTO.getTitulo());
-        imovel.setDescricao(imovelDTO.getDescricao());
-        imovel.setTipo(imovelDTO.getTipo());
-        imovel.setFinalidade(imovelDTO.getFinalidade());
-        imovel.setStatus(imovelDTO.getStatus());
-        imovel.setEndereco(imovelDTO.getEndereco());
-        imovel.setPreco(imovelDTO.getPreco());
-        imovel.setArea(imovelDTO.getArea());
-        imovel.setQuartos(imovelDTO.getQuartos());
-        imovel.setBanheiros(imovelDTO.getBanheiros());
-        imovel.setVagas(imovelDTO.getVagas());
-        imovel.setClienteId(imovelDTO.getClienteId());
-        imovel.setCorretorId(imovelDTO.getCorretorId());
+        // Áreas
+        imovel.setAreaTotal(dto.getAreaTotal());
+        imovel.setAreaConstruida(dto.getAreaConstruida());
+        imovel.setAreaUtil(dto.getAreaUtil());
+        imovel.setAnoConstrucao(dto.getAnoConstrucao());
 
-        if (imovelDTO.getFotos() != null) {
-            List<Long> keepPhotoIds = imovelDTO.getFotos().stream()
+        // Cômodos
+        imovel.setQuartos(dto.getQuartos());
+        imovel.setSuites(dto.getSuites());
+        imovel.setBanheiros(dto.getBanheiros());
+        imovel.setVagas(dto.getVagas());
+        imovel.setVagasCobertas(dto.getVagasCobertas());
+        imovel.setAndares(dto.getAndares());
+
+        // Comodidades
+        imovel.setComodidades(dto.getComodidades());
+
+        // Financeiro
+        imovel.setPrecoVenda(dto.getPrecoVenda());
+        imovel.setPrecoAluguel(dto.getPrecoAluguel());
+        imovel.setPrecoTemporada(dto.getPrecoTemporada());
+        imovel.setValorCondominio(dto.getValorCondominio());
+        imovel.setValorIptu(dto.getValorIptu());
+        imovel.setValorEntrada(dto.getValorEntrada());
+        imovel.setAceitaFinanciamento(dto.getAceitaFinanciamento());
+        imovel.setAceitaFgts(dto.getAceitaFgts());
+        imovel.setAceitaPermuta(dto.getAceitaPermuta());
+        imovel.setPosseImediata(dto.getPosseImediata());
+        imovel.setComissaoVenda(dto.getComissaoVenda());
+        imovel.setComissaoAluguel(dto.getComissaoAluguel());
+
+        // Documentação
+        imovel.setSituacaoDocumental(dto.getSituacaoDocumental());
+        imovel.setObservacoesInternas(dto.getObservacoesInternas());
+
+        // Responsáveis
+        imovel.setProprietarioId(dto.getProprietarioId());
+        imovel.setInquilinoId(dto.getInquilinoId());
+        imovel.setClienteId(dto.getClienteId());
+        imovel.setCorretorId(dto.getCorretorId());
+        // Manter fotos existentes
+        if (dto.getFotos() != null) {
+            List<Long> keepPhotoIds = dto.getFotos().stream()
                     .map(FotoDTO::getId)
                     .filter(Objects::nonNull)
                     .toList();
             imovel.getFotos().removeIf(foto -> !keepPhotoIds.contains(foto.getId()));
         }
-
+        // Adicionar novas fotos
         if (fotos != null && !fotos.isEmpty()) {
             for (MultipartFile file : fotos) {
                 Foto foto = new Foto(
@@ -115,15 +163,15 @@ public class ImovelService {
                 imovel.getFotos().add(foto);
             }
         }
-
-        if (imovelDTO.getVideos() != null) {
-            List<Long> keepVideoIds = imovelDTO.getVideos().stream()
+        // Manter vídeos existentes
+        if (dto.getVideos() != null) {
+            List<Long> keepVideoIds = dto.getVideos().stream()
                     .map(VideoDTO::getId)
                     .filter(Objects::nonNull)
                     .toList();
             imovel.getVideos().removeIf(video -> !keepVideoIds.contains(video.getId()));
         }
-        // NOVO: Adicionar novos vídeos
+        // Adicionar novos vídeos
         if (videos != null && !videos.isEmpty()) {
             for (MultipartFile file : videos) {
                 Video video = new Video(
@@ -136,10 +184,30 @@ public class ImovelService {
                 imovel.getVideos().add(video);
             }
         }
-
+        // Manter documentos existentes
+        if (dto.getDocumentos() != null) {
+            List<Long> keepDocIds = dto.getDocumentos().stream()
+                    .map(DocumentoImovelDTO::getId)
+                    .filter(Objects::nonNull)
+                    .toList();
+            imovel.getDocumentos().removeIf(doc -> !keepDocIds.contains(doc.getId()));
+        }
+        // Adicionar novos documentos
+        if (documentos != null && !documentos.isEmpty()) {
+            for (MultipartFile file : documentos) {
+                DocumentoImovel doc = new DocumentoImovel(
+                        file.getOriginalFilename(),
+                        "outros",
+                        file.getBytes(),
+                        file.getContentType(),
+                        file.getSize(),
+                        imovel
+                );
+                imovel.getDocumentos().add(doc);
+            }
+        }
         return imovelRepository.save(imovel);
     }
-
     public List<Imovel> findAll() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
@@ -148,12 +216,10 @@ public class ImovelService {
                 .map(Object::toString)
                 .map(role -> role.replace("SCOPE_", ""))
                 .orElseThrow(() -> new RuntimeException("Usuário sem role"));
-
         if (currentUserRole.equals("ADMIN")) {
             return imovelRepository.findAll();
         } else if (currentUserRole.equals("GERENTE")) {
             Long gerenteId = Long.parseLong(currentUserId);
-
             List<User> teamUsers = userRepository.findByGerenteId(gerenteId);
             List<Long> teamIds = teamUsers.stream()
                     .map(User::getUserId)
@@ -165,7 +231,6 @@ public class ImovelService {
             return imovelRepository.findByCorretorId(corretorId);
         }
     }
-
     public void delete(Long id) {
         Imovel imovel = imovelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));

@@ -1,16 +1,17 @@
 package com.im_api.dto;
-public class VideoDTO {
+public class DocumentoImovelDTO {
     private Long id;
     private String nomeArquivo;
-    private String base64;
+    private String tipoDocumento;
     private String tipoConteudo;
     private Long tamanho;
-    public VideoDTO() {}
-    public VideoDTO(Long id, String tipoConteudo, String nomeArquivo, String base64, Long tamanho) {
+    public DocumentoImovelDTO() {}
+    public DocumentoImovelDTO(Long id, String nomeArquivo, String tipoDocumento,
+                              String tipoConteudo, Long tamanho) {
         this.id = id;
-        this.tipoConteudo = tipoConteudo;
         this.nomeArquivo = nomeArquivo;
-        this.base64 = base64;
+        this.tipoDocumento = tipoDocumento;
+        this.tipoConteudo = tipoConteudo;
         this.tamanho = tamanho;
     }
     // Getters e Setters
@@ -20,8 +21,8 @@ public class VideoDTO {
     public String getNomeArquivo() { return nomeArquivo; }
     public void setNomeArquivo(String nomeArquivo) { this.nomeArquivo = nomeArquivo; }
 
-    public String getBase64() { return base64; }
-    public void setBase64(String base64) { this.base64 = base64; }
+    public String getTipoDocumento() { return tipoDocumento; }
+    public void setTipoDocumento(String tipoDocumento) { this.tipoDocumento = tipoDocumento; }
 
     public String getTipoConteudo() { return tipoConteudo; }
     public void setTipoConteudo(String tipoConteudo) { this.tipoConteudo = tipoConteudo; }
