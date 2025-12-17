@@ -27,6 +27,7 @@ public class ImovelDTO {
     private Integer vagas;
 
     private List<FotoDTO> fotos;
+    private List<VideoDTO> videos;
 
     private Long clienteId;
     private Long corretorId;
@@ -61,6 +62,15 @@ public class ImovelDTO {
                         foto.getTipoConteudo(),
                         foto.getNomeArquivo(),
                         Base64.getEncoder().encodeToString(foto.getDados())
+                ))
+                .collect(Collectors.toList());
+        this.videos = imovel.getVideos().stream()
+                .map(video -> new VideoDTO(
+                        video.getId(),
+                        video.getTipoConteudo(),
+                        video.getNomeArquivo(),
+                        Base64.getEncoder().encodeToString(video.getDados()),
+                        video.getTamanho()
                 ))
                 .collect(Collectors.toList());
     }
@@ -175,6 +185,13 @@ public class ImovelDTO {
 
     public void setFotos(List<FotoDTO> fotos) {
         this.fotos = fotos;
+    }
+
+    public List<VideoDTO> getVideos() {
+        return videos;
+    }
+    public void setVideos(List<VideoDTO> videos) {
+        this.videos = videos;
     }
 
     public Long getClienteId() {

@@ -38,6 +38,9 @@ public class Imovel {
     @OneToMany(mappedBy = "imovel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Foto> fotos = new ArrayList<>();
 
+    @OneToMany(mappedBy = "imovel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Video> videos = new ArrayList<>();
+
     private Long clienteId;
     private Long corretorId;
 
@@ -170,6 +173,14 @@ public class Imovel {
 
     public void setFotos(List<Foto> fotos) {
         this.fotos = fotos;
+    }
+
+    public List<Video> getVideos() {
+        return videos;
+    }
+
+    public void setVideos(List<Video> videos) {
+        this.videos = videos;
     }
 
     public Long getClienteId() {

@@ -23,6 +23,13 @@ public class ImovelController {
         this.imovelService = imovelService;
     }
 
+    @GetMapping("/{id}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ImovelDTO> findById(@PathVariable Long id) {
+        ImovelDTO imovelDTO = imovelService.findById(id);
+        return ResponseEntity.ok(imovelDTO);
+    }
+
     @GetMapping
     @Transactional(readOnly = true)
     public ResponseEntity<List<ImovelDTO>> findAll() {
@@ -36,9 +43,10 @@ public class ImovelController {
     @PostMapping
     public ResponseEntity<ImovelDTO> create(
             @RequestPart(value = "fotos", required = false) List<MultipartFile> fotos,
+            @RequestPart(value = "videos", required = false) List<MultipartFile> videos,
             @RequestPart("imovel") ImovelDTO imovelDTO) throws IOException {
-        Imovel savedImovel = imovelService.create(imovelDTO, fotos);
-        ImovelDTO responseDTO = new ImovelDTO(savedImovel); // Convert to DTO
+        Imovel savedImovel = imovelService.create(imovelDTO, fotos, videos);
+        ImovelDTO responseDTO = new ImovelDTO(savedImovel);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
@@ -47,8 +55,9 @@ public class ImovelController {
     public ResponseEntity<ImovelDTO> update(
             @PathVariable Long id,
             @RequestPart(value = "fotos", required = false) List<MultipartFile> fotos,
+            @RequestPart(value = "videos", required = false) List<MultipartFile> videos,
             @RequestPart("imovel") ImovelDTO imovelDTO) throws IOException {
-        Imovel updatedImovel = imovelService.update(id, imovelDTO, fotos);
+        Imovel updatedImovel = imovelService.update(id, imovelDTO, fotos, videos);
         ImovelDTO responseDTO = new ImovelDTO(updatedImovel);
         return ResponseEntity.ok(responseDTO);
     }

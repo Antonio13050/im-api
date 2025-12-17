@@ -3,8 +3,10 @@ package com.im_api.service;
 import com.im_api.dto.ImovelDTO;
 import com.im_api.model.Foto;
 import com.im_api.dto.FotoDTO;
+import com.im_api.dto.VideoDTO;
 import com.im_api.model.Imovel;
 import com.im_api.model.User;
+import com.im_api.model.Video;
 import com.im_api.repository.ImovelRepository;
 import com.im_api.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,9 +31,14 @@ public class ImovelService {
         this.userRepository = userRepository;
     }
 
-    public Imovel create(ImovelDTO imovelDTO, List<MultipartFile> fotos) throws IOException {
-        Imovel imovel = new Imovel(imovelDTO);
+    public ImovelDTO findById(Long id) {
+        Imovel imovel = imovelRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));
+        return new ImovelDTO(imovel);
+    }
 
+    public Imovel create(ImovelDTO imovelDTO, List<MultipartFile> fotos, List<MultipartFile> videos) throws IOException {
+        Imovel imovel = new Imovel(imovelDTO);
         if (fotos != null && !fotos.isEmpty()) {
             for (MultipartFile file : fotos) {
                 Foto foto = new Foto(
@@ -43,11 +50,25 @@ public class ImovelService {
                 imovel.getFotos().add(foto);
             }
         }
-
+        if (videos != null && !videos.isEmpty()) {
+            for (MultipartFile file : videos) {
+                Video video = new Video(
+                        file.getOriginalFilename(),
+                        file.getBytes(),
+                        file.getContentType(),
+                        file.getSize(),
+                        imovel
+                );
+                imovel.getVideos().add(video);
+            }
+        }
         return imovelRepository.save(imovel);
     }
 
-    public Imovel update(Long id, ImovelDTO imovelDTO, List<MultipartFile> fotos) throws IOException {
+    public Imovel update(Long id, ImovelDTO imovelDTO,
+                         List<MultipartFile> fotos,
+                         List<MultipartFile> videos) throws IOException {
+
         if (imovelDTO.getTitulo() == null || imovelDTO.getTitulo().isBlank()) {
             throw new IllegalArgumentException("O título do imóvel é obrigatório");
         }
@@ -92,6 +113,27 @@ public class ImovelService {
                         imovel
                 );
                 imovel.getFotos().add(foto);
+            }
+        }
+
+        if (imovelDTO.getVideos() != null) {
+            List<Long> keepVideoIds = imovelDTO.getVideos().stream()
+                    .map(VideoDTO::getId)
+                    .filter(Objects::nonNull)
+                    .toList();
+            imovel.getVideos().removeIf(video -> !keepVideoIds.contains(video.getId()));
+        }
+        // NOVO: Adicionar novos vídeos
+        if (videos != null && !videos.isEmpty()) {
+            for (MultipartFile file : videos) {
+                Video video = new Video(
+                        file.getOriginalFilename(),
+                        file.getBytes(),
+                        file.getContentType(),
+                        file.getSize(),
+                        imovel
+                );
+                imovel.getVideos().add(video);
             }
         }
 
