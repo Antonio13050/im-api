@@ -1,7 +1,9 @@
 package com.im_api.service;
 
 import com.im_api.dto.ClienteDTO;
+import com.im_api.dto.DocumentoClienteDTO;
 import com.im_api.model.Cliente;
+import com.im_api.model.DocumentoCliente;
 import com.im_api.model.User;
 import com.im_api.model.enums.Perfil;
 import com.im_api.repository.ClienteRepository;
@@ -10,8 +12,12 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,50 +31,100 @@ public class ClienteService {
         this.userRepository = userRepository;
     }
 
-    public Cliente create(ClienteDTO clienteDTO) {
+    @Transactional(readOnly = true)
+    public ClienteDTO findById(Long id) {
+        Cliente cliente = clienteRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Cliente com ID " + id + " não encontrado"));
+        return new ClienteDTO(cliente);
+    }
+
+    @Transactional
+    public Cliente create(ClienteDTO clienteDTO, List<MultipartFile> documentos) throws IOException {
         if (clienteDTO.getNome() == null || clienteDTO.getNome().isBlank()) {
             throw new IllegalArgumentException("O nome do cliente é obrigatório");
         }
+
         if (clienteDTO.getCorretorId() != null && !userRepository.existsById(clienteDTO.getCorretorId())) {
             throw new IllegalArgumentException("Corretor com ID " + clienteDTO.getCorretorId() + " não encontrado");
         }
+
         if (clienteDTO.getPerfil() == null || clienteDTO.getPerfil().isBlank()) {
             throw new IllegalArgumentException("O perfil do cliente é obrigatório");
         }
+
         try {
             Perfil.valueOf(clienteDTO.getPerfil().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Perfil inválido: " + clienteDTO.getPerfil());
         }
 
-        System.out.println("Criando cliente com ClienteDTO: " + clienteDTO);
         Cliente cliente = new Cliente();
         cliente.setNome(clienteDTO.getNome());
         cliente.setEmail(clienteDTO.getEmail());
+        cliente.setEmailAlternativo(clienteDTO.getEmailAlternativo());
         cliente.setTelefone(clienteDTO.getTelefone());
+        cliente.setTelefoneAlternativo(clienteDTO.getTelefoneAlternativo());
         cliente.setCpfCnpj(clienteDTO.getCpfCnpj());
         cliente.setDataNascimento(clienteDTO.getDataNascimento());
+        cliente.setEstadoCivil(clienteDTO.getEstadoCivil());
+        cliente.setProfissao(clienteDTO.getProfissao());
         cliente.setCorretorId(clienteDTO.getCorretorId());
         cliente.setPerfil(Perfil.valueOf(clienteDTO.getPerfil().toUpperCase()));
         cliente.setEndereco(clienteDTO.getEndereco());
+        cliente.setRendaMensal(clienteDTO.getRendaMensal());
+        cliente.setBanco(clienteDTO.getBanco());
+        cliente.setAgencia(clienteDTO.getAgencia());
+        cliente.setConta(clienteDTO.getConta());
+        cliente.setScoreCredito(clienteDTO.getScoreCredito());
+        cliente.setRestricoesFinanceiras(clienteDTO.getRestricoesFinanceiras());
+        cliente.setObservacoesFinanceiras(clienteDTO.getObservacoesFinanceiras());
         cliente.setInteresses(clienteDTO.getInteresses());
         cliente.setObservacoes(clienteDTO.getObservacoes());
+        cliente.setObservacoesInternas(clienteDTO.getObservacoesInternas());
 
-        Cliente saved = clienteRepository.save(cliente);
-        System.out.println("Cliente salvo: " + saved);
-        return saved;
+        // Processar documentos
+        if (documentos != null && !documentos.isEmpty()) {
+            for (MultipartFile file : documentos) {
+                DocumentoCliente doc = new DocumentoCliente(
+                        file.getOriginalFilename(),
+                        "outros", // tipo padrão, pode ser atualizado via DTO
+                        file.getBytes(),
+                        file.getContentType(),
+                        file.getSize(),
+                        cliente
+                );
+                cliente.getDocumentos().add(doc);
+            }
+        }
+
+        // Atualizar tipos de documentos se fornecidos no DTO
+        if (clienteDTO.getDocumentos() != null && !clienteDTO.getDocumentos().isEmpty()) {
+            int index = 0;
+            for (DocumentoClienteDTO docDTO : clienteDTO.getDocumentos()) {
+                if (docDTO.getId() == null && index < cliente.getDocumentos().size()) {
+                    cliente.getDocumentos().get(index).setTipoDocumento(docDTO.getTipoDocumento());
+                    index++;
+                }
+            }
+        }
+
+        return clienteRepository.save(cliente);
     }
 
-    public Cliente update(Long id, ClienteDTO clienteDTO) {
+    @Transactional
+    public Cliente update(Long id, ClienteDTO clienteDTO, List<MultipartFile> documentos) throws IOException {
         if (clienteDTO.getNome() == null || clienteDTO.getNome().isBlank()) {
             throw new IllegalArgumentException("O nome do cliente é obrigatório");
         }
+
         if (clienteDTO.getCorretorId() != null && !userRepository.existsById(clienteDTO.getCorretorId())) {
             throw new IllegalArgumentException("Corretor com ID " + clienteDTO.getCorretorId() + " não encontrado");
         }
+
         if (clienteDTO.getPerfil() == null || clienteDTO.getPerfil().isBlank()) {
             throw new IllegalArgumentException("O perfil do cliente é obrigatório");
         }
+
         try {
             Perfil.valueOf(clienteDTO.getPerfil().toUpperCase());
         } catch (IllegalArgumentException e) {
@@ -86,24 +142,89 @@ public class ClienteService {
                 .map(role -> role.replace("SCOPE_", ""))
                 .orElseThrow(() -> new RuntimeException("Usuário sem role"));
 
-        if (!currentUserRole.equals("ADMIN") && !cliente.getCorretorId().equals(Long.parseLong(currentUserId))) {
+        if (!currentUserRole.equals("ADMIN") && cliente.getCorretorId() != null &&
+                !cliente.getCorretorId().equals(Long.parseLong(currentUserId))) {
             throw new IllegalArgumentException("Você não tem permissão para atualizar este cliente");
         }
 
+        // Atualizar campos básicos
         cliente.setNome(clienteDTO.getNome());
         cliente.setEmail(clienteDTO.getEmail());
+        cliente.setEmailAlternativo(clienteDTO.getEmailAlternativo());
         cliente.setTelefone(clienteDTO.getTelefone());
+        cliente.setTelefoneAlternativo(clienteDTO.getTelefoneAlternativo());
         cliente.setCpfCnpj(clienteDTO.getCpfCnpj());
         cliente.setDataNascimento(clienteDTO.getDataNascimento());
+        cliente.setEstadoCivil(clienteDTO.getEstadoCivil());
+        cliente.setProfissao(clienteDTO.getProfissao());
         cliente.setCorretorId(clienteDTO.getCorretorId());
         cliente.setPerfil(Perfil.valueOf(clienteDTO.getPerfil().toUpperCase()));
         cliente.setEndereco(clienteDTO.getEndereco());
+        cliente.setRendaMensal(clienteDTO.getRendaMensal());
+        cliente.setBanco(clienteDTO.getBanco());
+        cliente.setAgencia(clienteDTO.getAgencia());
+        cliente.setConta(clienteDTO.getConta());
+        cliente.setScoreCredito(clienteDTO.getScoreCredito());
+        cliente.setRestricoesFinanceiras(clienteDTO.getRestricoesFinanceiras());
+        cliente.setObservacoesFinanceiras(clienteDTO.getObservacoesFinanceiras());
         cliente.setInteresses(clienteDTO.getInteresses());
         cliente.setObservacoes(clienteDTO.getObservacoes());
+        cliente.setObservacoesInternas(clienteDTO.getObservacoesInternas());
+
+        // Manter documentos existentes
+        if (clienteDTO.getDocumentos() != null) {
+            List<Long> keepDocIds = clienteDTO.getDocumentos().stream()
+                    .map(DocumentoClienteDTO::getId)
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            cliente.getDocumentos().removeIf(doc -> !keepDocIds.contains(doc.getId()));
+
+            // Atualizar tipos de documentos existentes
+            for (DocumentoClienteDTO docDTO : clienteDTO.getDocumentos()) {
+                if (docDTO.getId() != null) {
+                    cliente.getDocumentos().stream()
+                            .filter(doc -> doc.getId().equals(docDTO.getId()))
+                            .findFirst()
+                            .ifPresent(doc -> doc.setTipoDocumento(docDTO.getTipoDocumento()));
+                }
+            }
+        }
+
+        // Adicionar novos documentos
+        if (documentos != null && !documentos.isEmpty()) {
+            for (MultipartFile file : documentos) {
+                DocumentoCliente doc = new DocumentoCliente(
+                        file.getOriginalFilename(),
+                        "outros",
+                        file.getBytes(),
+                        file.getContentType(),
+                        file.getSize(),
+                        cliente
+                );
+                cliente.getDocumentos().add(doc);
+            }
+        }
+
+        // Atualizar tipos de novos documentos se fornecidos
+        if (clienteDTO.getDocumentos() != null && !clienteDTO.getDocumentos().isEmpty()) {
+            List<DocumentoClienteDTO> newDocs = clienteDTO.getDocumentos().stream()
+                    .filter(doc -> doc.getId() == null)
+                    .collect(Collectors.toList());
+
+            int newDocIndex = 0;
+            for (DocumentoCliente doc : cliente.getDocumentos()) {
+                if (doc.getId() == null && newDocIndex < newDocs.size()) {
+                    doc.setTipoDocumento(newDocs.get(newDocIndex).getTipoDocumento());
+                    newDocIndex++;
+                }
+            }
+        }
 
         return clienteRepository.save(cliente);
     }
 
+    @Transactional(readOnly = true)
     public List<Cliente> findAll() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
@@ -122,7 +243,6 @@ public class ClienteService {
                     .map(User::getUserId)
                     .collect(Collectors.toList());
             teamIds.add(gerenteId);
-            System.out.println("Team IDs: " + teamIds);
             return clienteRepository.findByCorretorIdIn(teamIds);
         } else {
             Long corretorId = Long.parseLong(currentUserId);
@@ -130,6 +250,7 @@ public class ClienteService {
         }
     }
 
+    @Transactional
     public void delete(Long id) {
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cliente com ID " + id + " não encontrado"));
@@ -142,10 +263,12 @@ public class ClienteService {
                 .map(role -> role.replace("SCOPE_", ""))
                 .orElseThrow(() -> new RuntimeException("Usuário sem role"));
 
-        if (!currentUserRole.equals("ADMIN") && !cliente.getCorretorId().equals(Long.parseLong(currentUserId))) {
+        if (!currentUserRole.equals("ADMIN") && cliente.getCorretorId() != null &&
+                !cliente.getCorretorId().equals(Long.parseLong(currentUserId))) {
             throw new IllegalArgumentException("Você não tem permissão para excluir este cliente");
         }
 
         clienteRepository.delete(cliente);
     }
 }
+

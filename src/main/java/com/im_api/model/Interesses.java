@@ -1,16 +1,16 @@
 package com.im_api.model;
 
 import jakarta.persistence.*;
-
+import java.util.ArrayList;
 import java.util.List;
 
 @Embeddable
 public class Interesses {
 
     @ElementCollection
-    @CollectionTable(name = "cliente_tipos_interesse", joinColumns = @JoinColumn(name = "cliente_id"))
+    @CollectionTable(name = "cliente_tipos_imovel", joinColumns = @JoinColumn(name = "cliente_id"))
     @Column(name = "tipo_imovel")
-    private List<String> tiposImovel;
+    private List<String> tiposImovel = new ArrayList<>();
 
     private Double faixaPrecoMin;
     private Double faixaPrecoMax;
@@ -18,22 +18,21 @@ public class Interesses {
     @ElementCollection
     @CollectionTable(name = "cliente_bairros_interesse", joinColumns = @JoinColumn(name = "cliente_id"))
     @Column(name = "bairro")
-    private List<String> bairrosInteresse;
+    private List<String> bairrosInteresse = new ArrayList<>();
 
     private String finalidade;
+
+    // Novos campos adicionados
+    private Integer quartos;
+    private Integer banheiros;
+    private Integer vagas;
+    @Column(columnDefinition = "TEXT")
+    private String observacoesPreferencias;
 
     public Interesses() {
     }
 
-    public Interesses(List<String> tiposImovel, Double faixaPrecoMin, Double faixaPrecoMax,
-                      List<String> bairrosInteresse, String finalidade) {
-        this.tiposImovel = tiposImovel;
-        this.faixaPrecoMin = faixaPrecoMin;
-        this.faixaPrecoMax = faixaPrecoMax;
-        this.bairrosInteresse = bairrosInteresse;
-        this.finalidade = finalidade;
-    }
-
+    // Getters e Setters
     public List<String> getTiposImovel() {
         return tiposImovel;
     }
@@ -73,4 +72,37 @@ public class Interesses {
     public void setFinalidade(String finalidade) {
         this.finalidade = finalidade;
     }
+
+    public Integer getQuartos() {
+        return quartos;
+    }
+
+    public void setQuartos(Integer quartos) {
+        this.quartos = quartos;
+    }
+
+    public Integer getBanheiros() {
+        return banheiros;
+    }
+
+    public void setBanheiros(Integer banheiros) {
+        this.banheiros = banheiros;
+    }
+
+    public Integer getVagas() {
+        return vagas;
+    }
+
+    public void setVagas(Integer vagas) {
+        this.vagas = vagas;
+    }
+
+    public String getObservacoesPreferencias() {
+        return observacoesPreferencias;
+    }
+
+    public void setObservacoesPreferencias(String observacoesPreferencias) {
+        this.observacoesPreferencias = observacoesPreferencias;
+    }
 }
+

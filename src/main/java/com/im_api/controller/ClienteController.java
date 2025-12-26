@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +21,13 @@ public class ClienteController {
 
     public ClienteController(ClienteService clienteService) {
         this.clienteService = clienteService;
+    }
+
+    @GetMapping("/{id}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ClienteDTO> findById(@PathVariable Long id) {
+        ClienteDTO clienteDTO = clienteService.findById(id);
+        return ResponseEntity.ok(clienteDTO);
     }
 
     @GetMapping
@@ -33,16 +42,21 @@ public class ClienteController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<ClienteDTO> create(@RequestBody ClienteDTO clienteDTO) {
-        Cliente savedCliente = clienteService.create(clienteDTO);
+    public ResponseEntity<ClienteDTO> create(
+            @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
+            @RequestPart("cliente") ClienteDTO clienteDTO) throws IOException {
+        Cliente savedCliente = clienteService.create(clienteDTO, documentos);
         ClienteDTO responseDTO = new ClienteDTO(savedCliente);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity<ClienteDTO> update(@PathVariable Long id, @RequestBody ClienteDTO clienteDTO) {
-        Cliente updatedCliente = clienteService.update(id, clienteDTO);
+    public ResponseEntity<ClienteDTO> update(
+            @PathVariable Long id,
+            @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
+            @RequestPart("cliente") ClienteDTO clienteDTO) throws IOException {
+        Cliente updatedCliente = clienteService.update(id, clienteDTO, documentos);
         ClienteDTO responseDTO = new ClienteDTO(updatedCliente);
         return ResponseEntity.ok(responseDTO);
     }
@@ -53,5 +67,5 @@ public class ClienteController {
         clienteService.delete(id);
         return ResponseEntity.noContent().build();
     }
-
 }
+

@@ -3,9 +3,10 @@ package com.im_api.model;
 import com.im_api.model.enums.Perfil;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "clientes")
@@ -15,48 +16,59 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Dados Pessoais
     private String nome;
     private String email;
+    private String emailAlternativo;
     private String telefone;
+    private String telefoneAlternativo;
     private String cpfCnpj;
     private LocalDate dataNascimento;
-    private Long corretorId = 3L;
+    private String estadoCivil;
+    private String profissao;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Perfil perfil = Perfil.CLIENTE;
 
+    private Long corretorId;
+
     @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdDate;
 
+    // Endereço
     @Embedded
     private Endereco endereco;
 
+    // Informações Financeiras
+    private Double rendaMensal;
+    private String banco;
+    private String agencia;
+    private String conta;
+    private Integer scoreCredito;
+    private Boolean restricoesFinanceiras = false;
+    @Column(columnDefinition = "TEXT")
+    private String observacoesFinanceiras;
+
+    // Preferências/Interesses
     @Embedded
     private Interesses interesses;
 
-    @Column(length = 1000)
+    // Observações
+    @Column(columnDefinition = "TEXT")
     private String observacoes;
+    @Column(columnDefinition = "TEXT")
+    private String observacoesInternas;
+
+    // Documentos
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DocumentoCliente> documentos = new ArrayList<>();
 
     public Cliente() {
     }
 
-    public Cliente(Long id, String nome, String email, String telefone, String cpfCnpj, LocalDate dataNascimento, Long corretorId, Perfil perfil, LocalDateTime createdDate, Endereco endereco, Interesses interesses, String observacoes
-    ) {
-        this.id = id;
-        this.nome = nome;
-        this.email = email;
-        this.telefone = telefone;
-        this.cpfCnpj = cpfCnpj;
-        this.dataNascimento = dataNascimento;
-        this.corretorId = corretorId;
-        this.perfil = perfil;
-        this.createdDate = createdDate;
-        this.endereco = endereco;
-        this.interesses = interesses;
-        this.observacoes = observacoes;
-    }
-
+    // Getters e Setters
     public Long getId() {
         return id;
     }
@@ -81,12 +93,28 @@ public class Cliente {
         this.email = email;
     }
 
+    public String getEmailAlternativo() {
+        return emailAlternativo;
+    }
+
+    public void setEmailAlternativo(String emailAlternativo) {
+        this.emailAlternativo = emailAlternativo;
+    }
+
     public String getTelefone() {
         return telefone;
     }
 
     public void setTelefone(String telefone) {
         this.telefone = telefone;
+    }
+
+    public String getTelefoneAlternativo() {
+        return telefoneAlternativo;
+    }
+
+    public void setTelefoneAlternativo(String telefoneAlternativo) {
+        this.telefoneAlternativo = telefoneAlternativo;
     }
 
     public String getCpfCnpj() {
@@ -105,12 +133,20 @@ public class Cliente {
         this.dataNascimento = dataNascimento;
     }
 
-    public Long getCorretorId() {
-        return corretorId;
+    public String getEstadoCivil() {
+        return estadoCivil;
     }
 
-    public void setCorretorId(Long corretorId) {
-        this.corretorId = corretorId;
+    public void setEstadoCivil(String estadoCivil) {
+        this.estadoCivil = estadoCivil;
+    }
+
+    public String getProfissao() {
+        return profissao;
+    }
+
+    public void setProfissao(String profissao) {
+        this.profissao = profissao;
     }
 
     public Perfil getPerfil() {
@@ -119,6 +155,14 @@ public class Cliente {
 
     public void setPerfil(Perfil perfil) {
         this.perfil = perfil;
+    }
+
+    public Long getCorretorId() {
+        return corretorId;
+    }
+
+    public void setCorretorId(Long corretorId) {
+        this.corretorId = corretorId;
     }
 
     public LocalDateTime getCreatedDate() {
@@ -137,6 +181,62 @@ public class Cliente {
         this.endereco = endereco;
     }
 
+    public Double getRendaMensal() {
+        return rendaMensal;
+    }
+
+    public void setRendaMensal(Double rendaMensal) {
+        this.rendaMensal = rendaMensal;
+    }
+
+    public String getBanco() {
+        return banco;
+    }
+
+    public void setBanco(String banco) {
+        this.banco = banco;
+    }
+
+    public String getAgencia() {
+        return agencia;
+    }
+
+    public void setAgencia(String agencia) {
+        this.agencia = agencia;
+    }
+
+    public String getConta() {
+        return conta;
+    }
+
+    public void setConta(String conta) {
+        this.conta = conta;
+    }
+
+    public Integer getScoreCredito() {
+        return scoreCredito;
+    }
+
+    public void setScoreCredito(Integer scoreCredito) {
+        this.scoreCredito = scoreCredito;
+    }
+
+    public Boolean getRestricoesFinanceiras() {
+        return restricoesFinanceiras;
+    }
+
+    public void setRestricoesFinanceiras(Boolean restricoesFinanceiras) {
+        this.restricoesFinanceiras = restricoesFinanceiras;
+    }
+
+    public String getObservacoesFinanceiras() {
+        return observacoesFinanceiras;
+    }
+
+    public void setObservacoesFinanceiras(String observacoesFinanceiras) {
+        this.observacoesFinanceiras = observacoesFinanceiras;
+    }
+
     public Interesses getInteresses() {
         return interesses;
     }
@@ -152,4 +252,21 @@ public class Cliente {
     public void setObservacoes(String observacoes) {
         this.observacoes = observacoes;
     }
+
+    public String getObservacoesInternas() {
+        return observacoesInternas;
+    }
+
+    public void setObservacoesInternas(String observacoesInternas) {
+        this.observacoesInternas = observacoesInternas;
+    }
+
+    public List<DocumentoCliente> getDocumentos() {
+        return documentos;
+    }
+
+    public void setDocumentos(List<DocumentoCliente> documentos) {
+        this.documentos = documentos;
+    }
 }
+
