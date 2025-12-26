@@ -73,7 +73,7 @@ public class UserService {
 
     public List<User> findUsersByRole(Long userId, String role) {
         if (role.contains("ADMIN")) {
-            return userRepository.findByRoles_NomeIn(List.of("CORRETOR", "GERENTE"));
+            return userRepository.findByRoles_NomeIn(List.of("ADMIN", "CORRETOR", "GERENTE"));
         } else if (role.contains("GERENTE")) {
             return userRepository.findByRoles_NomeAndGerenteId("CORRETOR", userId);
         }
