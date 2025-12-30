@@ -38,8 +38,7 @@ public class ImovelController {
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
             @Valid @RequestPart("imovel") ImovelDTO imovelDTO) throws IOException {
 
-        Imovel savedImovel = imovelService.create(imovelDTO, fotos, videos, documentos);
-        ImovelDTO responseDTO = new ImovelDTO(savedImovel);
+        ImovelDTO responseDTO = imovelService.create(imovelDTO, fotos, videos, documentos);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
     @PutMapping("/{id}")
@@ -51,8 +50,7 @@ public class ImovelController {
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
             @Valid @RequestPart("imovel") ImovelDTO imovelDTO) throws IOException {
 
-        Imovel updatedImovel = imovelService.update(id, imovelDTO, fotos, videos, documentos);
-        ImovelDTO responseDTO = new ImovelDTO(updatedImovel);
+        ImovelDTO responseDTO = imovelService.update(id, imovelDTO, fotos, videos, documentos);
         return ResponseEntity.ok(responseDTO);
     }
     @DeleteMapping("/{id}")

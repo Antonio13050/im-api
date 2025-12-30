@@ -43,8 +43,7 @@ public class ClienteController {
     public ResponseEntity<ClienteDTO> create(
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
             @Valid @RequestPart("cliente") ClienteDTO clienteDTO) throws IOException {
-        Cliente savedCliente = clienteService.create(clienteDTO, documentos);
-        ClienteDTO responseDTO = new ClienteDTO(savedCliente);
+        ClienteDTO responseDTO = clienteService.create(clienteDTO, documentos);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
@@ -54,8 +53,7 @@ public class ClienteController {
             @PathVariable Long id,
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
             @Valid @RequestPart("cliente") ClienteDTO clienteDTO) throws IOException {
-        Cliente updatedCliente = clienteService.update(id, clienteDTO, documentos);
-        ClienteDTO responseDTO = new ClienteDTO(updatedCliente);
+        ClienteDTO responseDTO = clienteService.update(id, clienteDTO, documentos);
         return ResponseEntity.ok(responseDTO);
     }
 

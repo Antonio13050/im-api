@@ -44,7 +44,7 @@ public class ImovelService {
     }
 
     @Transactional
-    public Imovel create(ImovelDTO imovelDTO,
+    public ImovelDTO create(ImovelDTO imovelDTO,
                          List<MultipartFile> fotos,
                          List<MultipartFile> videos,
                          List<MultipartFile> documentos) throws IOException {
@@ -94,11 +94,12 @@ public class ImovelService {
                 imovel.getDocumentos().add(doc);
             }
         }
-        return imovelRepository.save(imovel);
+        Imovel savedImovel = imovelRepository.save(imovel);
+        return imovelMapper.toDTO(savedImovel);
     }
 
     @Transactional
-    public Imovel update(Long id, ImovelDTO dto,
+    public ImovelDTO update(Long id, ImovelDTO dto,
                          List<MultipartFile> fotos,
                          List<MultipartFile> videos,
                          List<MultipartFile> documentos) throws IOException {
@@ -170,7 +171,8 @@ public class ImovelService {
                 imovel.getDocumentos().add(doc);
             }
         }
-        return imovelRepository.save(imovel);
+        Imovel savedImovel = imovelRepository.save(imovel);
+        return imovelMapper.toDTO(savedImovel);
     }
 
     @Transactional(readOnly = true)

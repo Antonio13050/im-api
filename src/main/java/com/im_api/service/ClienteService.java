@@ -42,7 +42,7 @@ public class ClienteService {
     }
 
     @Transactional
-    public Cliente create(ClienteDTO clienteDTO, List<MultipartFile> documentos) throws IOException {
+    public ClienteDTO create(ClienteDTO clienteDTO, List<MultipartFile> documentos) throws IOException {
         if (clienteDTO.getNome() == null || clienteDTO.getNome().isBlank()) {
             throw new IllegalArgumentException("O nome do cliente é obrigatório");
         }
@@ -89,11 +89,12 @@ public class ClienteService {
             }
         }
 
-        return clienteRepository.save(cliente);
+        Cliente savedCliente = clienteRepository.save(cliente);
+        return clienteMapper.toDTO(savedCliente);
     }
 
     @Transactional
-    public Cliente update(Long id, ClienteDTO clienteDTO, List<MultipartFile> documentos) throws IOException {
+    public ClienteDTO update(Long id, ClienteDTO clienteDTO, List<MultipartFile> documentos) throws IOException {
         if (clienteDTO.getNome() == null || clienteDTO.getNome().isBlank()) {
             throw new IllegalArgumentException("O nome do cliente é obrigatório");
         }
@@ -182,7 +183,8 @@ public class ClienteService {
             }
         }
 
-        return clienteRepository.save(cliente);
+        Cliente savedCliente = clienteRepository.save(cliente);
+        return clienteMapper.toDTO(savedCliente);
     }
 
     @Transactional(readOnly = true)
