@@ -1,5 +1,6 @@
 package com.im_api.service;
-import com.im_api.dto.ImovelDTO;
+import com.im_api.dto.ImovelRequestDTO;
+import com.im_api.dto.ImovelResponseDTO;
 import com.im_api.dto.FotoDTO;
 import com.im_api.dto.VideoDTO;
 import com.im_api.dto.DocumentoImovelDTO;
@@ -37,14 +38,14 @@ public class ImovelService {
     }
 
     @Transactional(readOnly = true)
-    public ImovelDTO findById(Long id) {
+    public ImovelResponseDTO findById(Long id) {
         Imovel imovel = imovelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));
         return imovelMapper.toDTO(imovel);
     }
 
     @Transactional
-    public ImovelDTO create(ImovelDTO imovelDTO,
+    public ImovelResponseDTO create(ImovelRequestDTO imovelDTO,
                          List<MultipartFile> fotos,
                          List<MultipartFile> videos,
                          List<MultipartFile> documentos) throws IOException {
@@ -99,15 +100,17 @@ public class ImovelService {
     }
 
     @Transactional
-    public ImovelDTO update(Long id, ImovelDTO dto,
+    public ImovelResponseDTO update(Long id, ImovelRequestDTO dto,
                          List<MultipartFile> fotos,
                          List<MultipartFile> videos,
                          List<MultipartFile> documentos) throws IOException {
 
         Imovel imovel = imovelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));
+        
         // Atualizar campos básicos via MapStruct
         imovelMapper.updateEntityFromDTO(dto, imovel);
+        
         // Manter fotos existentes
         if (dto.getFotos() != null) {
             List<Long> keepPhotoIds = dto.getFotos().stream()
@@ -176,7 +179,7 @@ public class ImovelService {
     }
 
     @Transactional(readOnly = true)
-    public List<ImovelDTO> findAll() {
+    public List<ImovelResponseDTO> findAll() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
         String currentUserRole = authentication.getAuthorities().stream()

@@ -1,6 +1,7 @@
 package com.im_api.controller;
 
-import com.im_api.dto.ClienteDTO;
+import com.im_api.dto.ClienteRequestDTO;
+import com.im_api.dto.ClienteResponseDTO;
 import com.im_api.model.Cliente;
 import com.im_api.service.ClienteService;
 import jakarta.validation.Valid;
@@ -25,35 +26,31 @@ public class ClienteController {
     }
 
     @GetMapping("/{id}")
-
-    public ResponseEntity<ClienteDTO> findById(@PathVariable Long id) {
-        ClienteDTO clienteDTO = clienteService.findById(id);
+    public ResponseEntity<ClienteResponseDTO> findById(@PathVariable Long id) {
+        ClienteResponseDTO clienteDTO = clienteService.findById(id);
         return ResponseEntity.ok(clienteDTO);
     }
 
     @GetMapping
-
-    public ResponseEntity<List<ClienteDTO>> findAll() {
-        List<ClienteDTO> clientes = clienteService.findAll();
+    public ResponseEntity<List<ClienteResponseDTO>> findAll() {
+        List<ClienteResponseDTO> clientes = clienteService.findAll();
         return ResponseEntity.ok(clientes);
     }
 
     @PostMapping
-
-    public ResponseEntity<ClienteDTO> create(
+    public ResponseEntity<ClienteResponseDTO> create(
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
-            @Valid @RequestPart("cliente") ClienteDTO clienteDTO) throws IOException {
-        ClienteDTO responseDTO = clienteService.create(clienteDTO, documentos);
+            @Valid @RequestPart("cliente") ClienteRequestDTO clienteDTO) throws IOException {
+        ClienteResponseDTO responseDTO = clienteService.create(clienteDTO, documentos);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
     @PutMapping("/{id}")
-
-    public ResponseEntity<ClienteDTO> update(
+    public ResponseEntity<ClienteResponseDTO> update(
             @PathVariable Long id,
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
-            @Valid @RequestPart("cliente") ClienteDTO clienteDTO) throws IOException {
-        ClienteDTO responseDTO = clienteService.update(id, clienteDTO, documentos);
+            @Valid @RequestPart("cliente") ClienteRequestDTO clienteDTO) throws IOException {
+        ClienteResponseDTO responseDTO = clienteService.update(id, clienteDTO, documentos);
         return ResponseEntity.ok(responseDTO);
     }
 

@@ -1,6 +1,7 @@
 package com.im_api.controller;
 
-import com.im_api.dto.ImovelDTO;
+import com.im_api.dto.ImovelRequestDTO;
+import com.im_api.dto.ImovelResponseDTO;
 import com.im_api.model.Imovel;
 import com.im_api.service.ImovelService;
 import jakarta.validation.Valid;
@@ -20,37 +21,34 @@ public class ImovelController {
         this.imovelService = imovelService;
     }
     @GetMapping("/{id}")
-
-    public ResponseEntity<ImovelDTO> findById(@PathVariable Long id) {
-        ImovelDTO imovelDTO = imovelService.findById(id);
+    public ResponseEntity<ImovelResponseDTO> findById(@PathVariable Long id) {
+        ImovelResponseDTO imovelDTO = imovelService.findById(id);
         return ResponseEntity.ok(imovelDTO);
     }
     @GetMapping
-
-    public ResponseEntity<List<ImovelDTO>> findAll() {
-        List<ImovelDTO> imoveis = imovelService.findAll();
+    public ResponseEntity<List<ImovelResponseDTO>> findAll() {
+        List<ImovelResponseDTO> imoveis = imovelService.findAll();
         return ResponseEntity.ok(imoveis);
     }
     @PostMapping
-    public ResponseEntity<ImovelDTO> create(
+    public ResponseEntity<ImovelResponseDTO> create(
             @RequestPart(value = "fotos", required = false) List<MultipartFile> fotos,
             @RequestPart(value = "videos", required = false) List<MultipartFile> videos,
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
-            @Valid @RequestPart("imovel") ImovelDTO imovelDTO) throws IOException {
+            @Valid @RequestPart("imovel") ImovelRequestDTO imovelDTO) throws IOException {
 
-        ImovelDTO responseDTO = imovelService.create(imovelDTO, fotos, videos, documentos);
+        ImovelResponseDTO responseDTO = imovelService.create(imovelDTO, fotos, videos, documentos);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
     @PutMapping("/{id}")
-
-    public ResponseEntity<ImovelDTO> update(
+    public ResponseEntity<ImovelResponseDTO> update(
             @PathVariable Long id,
             @RequestPart(value = "fotos", required = false) List<MultipartFile> fotos,
             @RequestPart(value = "videos", required = false) List<MultipartFile> videos,
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
-            @Valid @RequestPart("imovel") ImovelDTO imovelDTO) throws IOException {
+            @Valid @RequestPart("imovel") ImovelRequestDTO imovelDTO) throws IOException {
 
-        ImovelDTO responseDTO = imovelService.update(id, imovelDTO, fotos, videos, documentos);
+        ImovelResponseDTO responseDTO = imovelService.update(id, imovelDTO, fotos, videos, documentos);
         return ResponseEntity.ok(responseDTO);
     }
     @DeleteMapping("/{id}")

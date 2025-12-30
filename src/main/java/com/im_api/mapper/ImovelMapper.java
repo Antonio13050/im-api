@@ -1,6 +1,7 @@
 package com.im_api.mapper;
 
-import com.im_api.dto.ImovelDTO;
+import com.im_api.dto.ImovelRequestDTO;
+import com.im_api.dto.ImovelResponseDTO;
 import com.im_api.dto.FotoDTO;
 import com.im_api.dto.VideoDTO;
 import com.im_api.model.Imovel;
@@ -18,21 +19,21 @@ public interface ImovelMapper {
 
     @Mapping(target = "fotos", source = "fotos", qualifiedByName = "mapFotoToDTO")
     @Mapping(target = "videos", source = "videos", qualifiedByName = "mapVideoToDTO")
-    ImovelDTO toDTO(Imovel imovel);
+    ImovelResponseDTO toDTO(Imovel imovel);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdDate", ignore = true)
     @Mapping(target = "fotos", ignore = true) // Handled manually in service for uploads
     @Mapping(target = "videos", ignore = true)
     @Mapping(target = "documentos", ignore = true)
-    Imovel toEntity(ImovelDTO dto);
+    Imovel toEntity(ImovelRequestDTO dto);
     
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdDate", ignore = true)
     @Mapping(target = "fotos", ignore = true)
     @Mapping(target = "videos", ignore = true)
     @Mapping(target = "documentos", ignore = true)
-    void updateEntityFromDTO(ImovelDTO dto, @MappingTarget Imovel imovel);
+    void updateEntityFromDTO(ImovelRequestDTO dto, @MappingTarget Imovel imovel);
 
     @Named("mapFotoToDTO")
     default FotoDTO mapFotoToDTO(Foto foto) {
