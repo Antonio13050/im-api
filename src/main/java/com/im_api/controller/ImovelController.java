@@ -1,7 +1,9 @@
 package com.im_api.controller;
+
 import com.im_api.dto.ImovelDTO;
 import com.im_api.model.Imovel;
 import com.im_api.service.ImovelService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +39,7 @@ public class ImovelController {
             @RequestPart(value = "fotos", required = false) List<MultipartFile> fotos,
             @RequestPart(value = "videos", required = false) List<MultipartFile> videos,
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
-            @RequestPart("imovel") ImovelDTO imovelDTO) throws IOException {
+            @Valid @RequestPart("imovel") ImovelDTO imovelDTO) throws IOException {
 
         Imovel savedImovel = imovelService.create(imovelDTO, fotos, videos, documentos);
         ImovelDTO responseDTO = new ImovelDTO(savedImovel);
@@ -50,7 +52,7 @@ public class ImovelController {
             @RequestPart(value = "fotos", required = false) List<MultipartFile> fotos,
             @RequestPart(value = "videos", required = false) List<MultipartFile> videos,
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
-            @RequestPart("imovel") ImovelDTO imovelDTO) throws IOException {
+            @Valid @RequestPart("imovel") ImovelDTO imovelDTO) throws IOException {
 
         Imovel updatedImovel = imovelService.update(id, imovelDTO, fotos, videos, documentos);
         ImovelDTO responseDTO = new ImovelDTO(updatedImovel);

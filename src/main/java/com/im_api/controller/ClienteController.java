@@ -3,6 +3,7 @@ package com.im_api.controller;
 import com.im_api.dto.ClienteDTO;
 import com.im_api.model.Cliente;
 import com.im_api.service.ClienteService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +45,7 @@ public class ClienteController {
     @Transactional
     public ResponseEntity<ClienteDTO> create(
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
-            @RequestPart("cliente") ClienteDTO clienteDTO) throws IOException {
+            @Valid @RequestPart("cliente") ClienteDTO clienteDTO) throws IOException {
         Cliente savedCliente = clienteService.create(clienteDTO, documentos);
         ClienteDTO responseDTO = new ClienteDTO(savedCliente);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
@@ -55,7 +56,7 @@ public class ClienteController {
     public ResponseEntity<ClienteDTO> update(
             @PathVariable Long id,
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
-            @RequestPart("cliente") ClienteDTO clienteDTO) throws IOException {
+            @Valid @RequestPart("cliente") ClienteDTO clienteDTO) throws IOException {
         Cliente updatedCliente = clienteService.update(id, clienteDTO, documentos);
         ClienteDTO responseDTO = new ClienteDTO(updatedCliente);
         return ResponseEntity.ok(responseDTO);

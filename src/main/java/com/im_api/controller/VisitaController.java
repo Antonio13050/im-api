@@ -3,6 +3,7 @@ package com.im_api.controller;
 import com.im_api.dto.UpdateStatusRequestDTO;
 import com.im_api.model.Visita;
 import com.im_api.service.VisitaService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,7 +34,7 @@ public class VisitaController {
 
     @PutMapping("/{id}/status")
     @Transactional
-    public ResponseEntity<Visita> updateVisitStatus(@PathVariable Long id, @RequestBody UpdateStatusRequestDTO request) {
+    public ResponseEntity<Visita> updateVisitStatus(@PathVariable Long id, @Valid @RequestBody UpdateStatusRequestDTO request) {
         try {
             Visita updated = visitaService.updateStatus(id, request.getStatus());
             return ResponseEntity.ok(updated);

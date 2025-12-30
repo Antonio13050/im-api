@@ -3,10 +3,10 @@ package com.im_api.dto;
 import com.im_api.model.Cliente;
 import com.im_api.model.Endereco;
 import com.im_api.model.Interesses;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,17 +15,30 @@ public class ClienteDTO {
     private Long id;
 
     // Dados Pessoais
+    @NotBlank(message = "O nome é obrigatório")
+    @Size(min = 2, max = 255, message = "O nome deve ter entre 2 e 255 caracteres")
     private String nome;
+
+    @Email(message = "Email inválido")
     private String email;
+
+    @Email(message = "Email alternativo inválido")
     private String emailAlternativo;
+
     private String telefone;
     private String telefoneAlternativo;
+
+    @Pattern(regexp = "^\\d{11}$|^\\d{14}$", message = "CPF/CNPJ deve conter 11 ou 14 dígitos numéricos")
     private String cpfCnpj;
+
     private LocalDate dataNascimento;
     private String estadoCivil;
     private String profissao;
     private Long corretorId;
+
+    @NotNull(message = "O perfil é obrigatório")
     private String perfil;
+
     private LocalDateTime createdDate;
 
     // Endereço
@@ -80,15 +93,17 @@ public class ClienteDTO {
         this.observacoesInternas = cliente.getObservacoesInternas();
 
         // Mapear documentos
-        this.documentos = cliente.getDocumentos().stream()
-                .map(doc -> new DocumentoClienteDTO(
-                        doc.getId(),
-                        doc.getNomeArquivo(),
-                        doc.getTipoDocumento(),
-                        doc.getTipoConteudo(),
-                        doc.getTamanho()
-                ))
-                .collect(Collectors.toList());
+        if (cliente.getDocumentos() != null) {
+            this.documentos = cliente.getDocumentos().stream()
+                    .map(doc -> new DocumentoClienteDTO(
+                            doc.getId(),
+                            doc.getNomeArquivo(),
+                            doc.getTipoDocumento(),
+                            doc.getTipoConteudo(),
+                            doc.getTamanho()
+                    ))
+                    .collect(Collectors.toList());
+        }
     }
 
     // Getters e Setters
@@ -292,4 +307,3 @@ public class ClienteDTO {
         this.documentos = documentos;
     }
 }
-

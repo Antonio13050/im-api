@@ -1,45 +1,88 @@
 package com.im_api.dto;
+
 import com.im_api.model.Endereco;
 import com.im_api.model.Imovel;
+import jakarta.validation.constraints.*;
+
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
+
 public class ImovelDTO {
     // Identificação
     private Long id;
+    
     private String codigo;
+
+    @NotBlank(message = "O título é obrigatório")
     private String titulo;
+
     private String descricao;
+
     // Classificação
+    @NotBlank(message = "O tipo do imóvel é obrigatório")
     private String tipo;
+
     private String subtipo;
+
+    @NotBlank(message = "A finalidade é obrigatória")
     private String finalidade;
+
     private String status;
     private Boolean destaque;
     private Boolean exclusividade;
     private LocalDateTime createdDate;
+
+    @NotNull(message = "O endereço é obrigatório")
     private Endereco endereco;
+
     // Áreas
+    @PositiveOrZero(message = "Área total deve ser positiva")
     private Double areaTotal;
+
+    @PositiveOrZero(message = "Área construída deve ser positiva")
     private Double areaConstruida;
+
+    @PositiveOrZero(message = "Área útil deve ser positiva")
     private Double areaUtil;
+
     private Integer anoConstrucao;
+
     // Cômodos
+    @PositiveOrZero(message = "Número de quartos deve ser positivo")
     private Integer quartos;
+
+    @PositiveOrZero(message = "Número de suítes deve ser positivo")
     private Integer suites;
+
+    @PositiveOrZero(message = "Número de banheiros deve ser positivo")
     private Integer banheiros;
+
+    @PositiveOrZero(message = "Número de vagas deve ser positivo")
     private Integer vagas;
+
     private Integer vagasCobertas;
     private Integer andares;
+
     // Comodidades
     private List<String> comodidades;
+
     // Financeiro
+    @PositiveOrZero(message = "Preço de venda deve ser positivo")
     private Double precoVenda;
+
+    @PositiveOrZero(message = "Preço de aluguel deve ser positivo")
     private Double precoAluguel;
+
     private Double precoTemporada;
+
+    @PositiveOrZero(message = "Valor do condomínio deve ser positivo")
     private Double valorCondominio;
+
+    @PositiveOrZero(message = "Valor do IPTU deve ser positivo")
     private Double valorIptu;
+
     private Double valorEntrada;
     private Boolean aceitaFinanciamento;
     private Boolean aceitaFgts;
@@ -47,19 +90,24 @@ public class ImovelDTO {
     private Boolean posseImediata;
     private Double comissaoVenda;
     private Double comissaoAluguel;
+
     // Documentação
     private String situacaoDocumental;
     private String observacoesInternas;
+
     // Mídia
     private List<FotoDTO> fotos;
     private List<VideoDTO> videos;
     private List<DocumentoImovelDTO> documentos;
+
     // Responsáveis
     private Long proprietarioId;
     private Long inquilinoId;
     private Long clienteId;
     private Long corretorId;
+
     public ImovelDTO() {}
+
     public ImovelDTO(Imovel imovel) {
         this.id = imovel.getId();
         this.codigo = imovel.getCodigo();
@@ -102,39 +150,47 @@ public class ImovelDTO {
         this.inquilinoId = imovel.getInquilinoId();
         this.clienteId = imovel.getClienteId();
         this.corretorId = imovel.getCorretorId();
-        // Mapear fotos
-        this.fotos = imovel.getFotos().stream()
-                .map(foto -> new FotoDTO(
-                        foto.getId(),
-                        foto.getTipoConteudo(),
-                        foto.getNomeArquivo(),
-                        Base64.getEncoder().encodeToString(foto.getDados())
-                ))
-                .collect(Collectors.toList());
-        // Mapear vídeos
-        this.videos = imovel.getVideos().stream()
-                .map(video -> new VideoDTO(
-                        video.getId(),
-                        video.getTipoConteudo(),
-                        video.getNomeArquivo(),
-                        Base64.getEncoder().encodeToString(video.getDados()),
-                        video.getTamanho()
-                ))
-                .collect(Collectors.toList());
-        // Mapear documentos
-        this.documentos = imovel.getDocumentos().stream()
-                .map(doc -> new DocumentoImovelDTO(
-                        doc.getId(),
-                        doc.getNomeArquivo(),
-                        doc.getTipoDocumento(),
-                        doc.getTipoConteudo(),
-                        doc.getTamanho()
-                ))
-                .collect(Collectors.toList());
-    }
-    // Getters e Setters para TODOS os campos
-    // (Gere automaticamente na sua IDE)
 
+        // Mapear fotos
+        if (imovel.getFotos() != null) {
+            this.fotos = imovel.getFotos().stream()
+                    .map(foto -> new FotoDTO(
+                            foto.getId(),
+                            foto.getTipoConteudo(),
+                            foto.getNomeArquivo(),
+                            Base64.getEncoder().encodeToString(foto.getDados())
+                    ))
+                    .collect(Collectors.toList());
+        }
+
+        // Mapear vídeos
+        if (imovel.getVideos() != null) {
+            this.videos = imovel.getVideos().stream()
+                    .map(video -> new VideoDTO(
+                            video.getId(),
+                            video.getTipoConteudo(),
+                            video.getNomeArquivo(),
+                            Base64.getEncoder().encodeToString(video.getDados()),
+                            video.getTamanho()
+                    ))
+                    .collect(Collectors.toList());
+        }
+
+        // Mapear documentos
+        if (imovel.getDocumentos() != null) {
+            this.documentos = imovel.getDocumentos().stream()
+                    .map(doc -> new DocumentoImovelDTO(
+                            doc.getId(),
+                            doc.getNomeArquivo(),
+                            doc.getTipoDocumento(),
+                            doc.getTipoConteudo(),
+                            doc.getTamanho()
+                    ))
+                    .collect(Collectors.toList());
+        }
+    }
+
+    // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

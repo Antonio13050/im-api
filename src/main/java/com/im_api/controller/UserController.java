@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -27,14 +28,17 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+
+
+
     @PostMapping()
-    public ResponseEntity<User> create(@RequestBody UserCreateDTO userCreateDTO) {
+    public ResponseEntity<User> create(@Valid @RequestBody UserCreateDTO userCreateDTO) {
         User user = userService.create(userCreateDTO);
         return ResponseEntity.ok(user);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> update(@PathVariable Long id, @RequestBody UserCreateDTO userUpdateDTO) {
+    public ResponseEntity<User> update(@PathVariable Long id, @Valid @RequestBody UserCreateDTO userUpdateDTO) {
         User user = userService.update(id, userUpdateDTO);
         return ResponseEntity.ok(user);
     }

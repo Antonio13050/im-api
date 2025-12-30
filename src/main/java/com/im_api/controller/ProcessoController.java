@@ -3,6 +3,7 @@ package com.im_api.controller;
 import com.im_api.dto.UpdateStatusRequestDTO;
 import com.im_api.model.Processo;
 import com.im_api.service.ProcessoService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +37,7 @@ public class ProcessoController {
     @Transactional
     public ResponseEntity<Processo> updateStatus(
             @PathVariable Long id,
-            @RequestBody UpdateStatusRequestDTO request) {
+            @Valid @RequestBody UpdateStatusRequestDTO request) {
         try {
             Processo updated = processoService.updateStatus(id, request);
             return ResponseEntity.ok(updated);
