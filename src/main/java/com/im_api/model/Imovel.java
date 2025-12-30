@@ -3,6 +3,7 @@ import com.im_api.dto.ImovelDTO;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 @Entity
@@ -50,18 +51,19 @@ public class Imovel {
     @Column(name = "comodidade")
     private List<String> comodidades = new ArrayList<>();
     // Financeiro
-    private Double precoVenda;
-    private Double precoAluguel;
-    private Double precoTemporada;
-    private Double valorCondominio;
-    private Double valorIptu;
-    private Double valorEntrada;
+    // Financeiro
+    private BigDecimal precoVenda;
+    private BigDecimal precoAluguel;
+    private BigDecimal precoTemporada;
+    private BigDecimal valorCondominio;
+    private BigDecimal valorIptu;
+    private BigDecimal valorEntrada;
     private Boolean aceitaFinanciamento = false;
     private Boolean aceitaFgts = false;
     private Boolean aceitaPermuta = false;
     private Boolean posseImediata = true;
-    private Double comissaoVenda;
-    private Double comissaoAluguel;
+    private BigDecimal comissaoVenda;
+    private BigDecimal comissaoAluguel;
     // Documentação
     private String situacaoDocumental;
 
@@ -194,23 +196,23 @@ public class Imovel {
     public List<String> getComodidades() { return comodidades; }
     public void setComodidades(List<String> comodidades) { this.comodidades = comodidades; }
 
-    public Double getPrecoVenda() { return precoVenda; }
-    public void setPrecoVenda(Double precoVenda) { this.precoVenda = precoVenda; }
+    public BigDecimal getPrecoVenda() { return precoVenda; }
+    public void setPrecoVenda(BigDecimal precoVenda) { this.precoVenda = precoVenda; }
 
-    public Double getPrecoAluguel() { return precoAluguel; }
-    public void setPrecoAluguel(Double precoAluguel) { this.precoAluguel = precoAluguel; }
+    public BigDecimal getPrecoAluguel() { return precoAluguel; }
+    public void setPrecoAluguel(BigDecimal precoAluguel) { this.precoAluguel = precoAluguel; }
 
-    public Double getPrecoTemporada() { return precoTemporada; }
-    public void setPrecoTemporada(Double precoTemporada) { this.precoTemporada = precoTemporada; }
+    public BigDecimal getPrecoTemporada() { return precoTemporada; }
+    public void setPrecoTemporada(BigDecimal precoTemporada) { this.precoTemporada = precoTemporada; }
 
-    public Double getValorCondominio() { return valorCondominio; }
-    public void setValorCondominio(Double valorCondominio) { this.valorCondominio = valorCondominio; }
+    public BigDecimal getValorCondominio() { return valorCondominio; }
+    public void setValorCondominio(BigDecimal valorCondominio) { this.valorCondominio = valorCondominio; }
 
-    public Double getValorIptu() { return valorIptu; }
-    public void setValorIptu(Double valorIptu) { this.valorIptu = valorIptu; }
+    public BigDecimal getValorIptu() { return valorIptu; }
+    public void setValorIptu(BigDecimal valorIptu) { this.valorIptu = valorIptu; }
 
-    public Double getValorEntrada() { return valorEntrada; }
-    public void setValorEntrada(Double valorEntrada) { this.valorEntrada = valorEntrada; }
+    public BigDecimal getValorEntrada() { return valorEntrada; }
+    public void setValorEntrada(BigDecimal valorEntrada) { this.valorEntrada = valorEntrada; }
 
     public Boolean getAceitaFinanciamento() { return aceitaFinanciamento; }
     public void setAceitaFinanciamento(Boolean aceitaFinanciamento) { this.aceitaFinanciamento = aceitaFinanciamento; }
@@ -224,11 +226,11 @@ public class Imovel {
     public Boolean getPosseImediata() { return posseImediata; }
     public void setPosseImediata(Boolean posseImediata) { this.posseImediata = posseImediata; }
 
-    public Double getComissaoVenda() { return comissaoVenda; }
-    public void setComissaoVenda(Double comissaoVenda) { this.comissaoVenda = comissaoVenda; }
+    public BigDecimal getComissaoVenda() { return comissaoVenda; }
+    public void setComissaoVenda(BigDecimal comissaoVenda) { this.comissaoVenda = comissaoVenda; }
 
-    public Double getComissaoAluguel() { return comissaoAluguel; }
-    public void setComissaoAluguel(Double comissaoAluguel) { this.comissaoAluguel = comissaoAluguel; }
+    public BigDecimal getComissaoAluguel() { return comissaoAluguel; }
+    public void setComissaoAluguel(BigDecimal comissaoAluguel) { this.comissaoAluguel = comissaoAluguel; }
 
     public String getSituacaoDocumental() { return situacaoDocumental; }
     public void setSituacaoDocumental(String situacaoDocumental) { this.situacaoDocumental = situacaoDocumental; }

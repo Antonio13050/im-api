@@ -4,6 +4,7 @@ import com.im_api.model.enums.Perfil;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ public class Cliente {
     private Endereco endereco;
 
     // Informações Financeiras
-    private Double rendaMensal;
+    private BigDecimal rendaMensal;
     private String banco;
     private String agencia;
     private String conta;
@@ -181,11 +182,11 @@ public class Cliente {
         this.endereco = endereco;
     }
 
-    public Double getRendaMensal() {
+    public BigDecimal getRendaMensal() {
         return rendaMensal;
     }
 
-    public void setRendaMensal(Double rendaMensal) {
+    public void setRendaMensal(BigDecimal rendaMensal) {
         this.rendaMensal = rendaMensal;
     }
 

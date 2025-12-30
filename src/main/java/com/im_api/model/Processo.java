@@ -1,6 +1,7 @@
 package com.im_api.model;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -16,7 +17,7 @@ public class Processo {
     private Long clienteId;
     private Long corretorId;
 
-    private Double valorProposto;
+    private BigDecimal valorProposto;
     private String tipoFinanciamento;
     private String nomeBanco;
     private String observacoes;
@@ -60,11 +61,11 @@ public class Processo {
         this.corretorId = corretorId;
     }
 
-    public Double getValorProposto() {
+    public BigDecimal getValorProposto() {
         return valorProposto;
     }
 
-    public void setValorProposto(Double valorProposto) {
+    public void setValorProposto(BigDecimal valorProposto) {
         this.valorProposto = valorProposto;
     }
 

@@ -6,6 +6,7 @@ import com.im_api.model.Interesses;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,7 +46,8 @@ public class ClienteDTO {
     private Endereco endereco;
 
     // Informações Financeiras
-    private Double rendaMensal;
+    @PositiveOrZero(message = "Renda mensal deve ser positiva")
+    private BigDecimal rendaMensal;
     private String banco;
     private String agencia;
     private String conta;
@@ -219,11 +221,11 @@ public class ClienteDTO {
         this.endereco = endereco;
     }
 
-    public Double getRendaMensal() {
+    public BigDecimal getRendaMensal() {
         return rendaMensal;
     }
 
-    public void setRendaMensal(Double rendaMensal) {
+    public void setRendaMensal(BigDecimal rendaMensal) {
         this.rendaMensal = rendaMensal;
     }
 
