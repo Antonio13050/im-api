@@ -6,7 +6,7 @@ import com.im_api.service.ProcessoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,14 +27,14 @@ public class ProcessoController {
     }
 
     @PostMapping
-    @Transactional
+
     public ResponseEntity<Processo> create(@RequestBody Processo processo) {
         Processo savedCliente = processoService.create(processo);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedCliente);
     }
 
     @PutMapping("/{id}/status")
-    @Transactional
+
     public ResponseEntity<Processo> updateStatus(
             @PathVariable Long id,
             @Valid @RequestBody UpdateStatusRequestDTO request) {
@@ -47,7 +47,7 @@ public class ProcessoController {
     }
 
     @PutMapping("/{id}")
-    @Transactional
+
     public ResponseEntity<Processo> update(@PathVariable Long id,
                                            @RequestBody Processo processo) {
         Processo response = processoService.update(id, processo);

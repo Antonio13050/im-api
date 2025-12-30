@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 public class VisitaService {
 
@@ -22,18 +24,22 @@ public class VisitaService {
         this.clienteRepository = clienteRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Visita> getAllVisits() {
         return visitaRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public List<Visita> getVisitsByRealtorId(Long corretorId) {
         return visitaRepository.findByCorretorId(corretorId);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Visita> getVisitById(Long id) {
         return visitaRepository.findById(id);
     }
 
+    @Transactional
     public Visita create(Visita visit) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
@@ -49,6 +55,7 @@ public class VisitaService {
         return visitaRepository.save(visit);
     }
 
+    @Transactional
     public Visita updateStatus(Long id, String status) {
         Visita visit = visitaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Visita não encontrada"));
@@ -56,6 +63,7 @@ public class VisitaService {
         return visitaRepository.save(visit);
     }
 
+    @Transactional
     public Visita update(Long id, Visita visitDetails) {
         Visita visit = visitaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Visita não encontrada"));
@@ -75,6 +83,7 @@ public class VisitaService {
         return visitaRepository.save(visit);
     }
 
+    @Transactional
     public void deleteVisit(Long id) {
         visitaRepository.deleteById(id);
     }

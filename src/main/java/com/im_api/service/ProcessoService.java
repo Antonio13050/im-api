@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 public class ProcessoService {
 
@@ -28,6 +30,7 @@ public class ProcessoService {
         this.historyRepository = historyRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Processo> findAll() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
@@ -53,6 +56,7 @@ public class ProcessoService {
         return processoRepository.findByCorretorId(corretorId);
     }
 
+    @Transactional
     public Processo create(Processo processo) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
@@ -68,6 +72,7 @@ public class ProcessoService {
         return saved;
     }
 
+    @Transactional
     public Processo updateStatus(Long id, UpdateStatusRequestDTO request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
@@ -90,6 +95,7 @@ public class ProcessoService {
         return updatedProcesso;
     }
 
+    @Transactional
     public Processo update(Long id, Processo updateProcesso) {
         Processo processo = processoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Processo com ID " + id + " não encontrado"));

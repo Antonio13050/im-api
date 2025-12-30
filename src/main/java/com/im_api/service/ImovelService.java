@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 public class ImovelService {
     private final ImovelRepository imovelRepository;
@@ -28,11 +30,15 @@ public class ImovelService {
         Long count = imovelRepository.count() + 1;
         return String.format("IMV-%05d", count);
     }
+
+    @Transactional(readOnly = true)
     public ImovelDTO findById(Long id) {
         Imovel imovel = imovelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));
         return new ImovelDTO(imovel);
     }
+
+    @Transactional
     public Imovel create(ImovelDTO imovelDTO,
                          List<MultipartFile> fotos,
                          List<MultipartFile> videos,
@@ -85,6 +91,8 @@ public class ImovelService {
         }
         return imovelRepository.save(imovel);
     }
+
+    @Transactional
     public Imovel update(Long id, ImovelDTO dto,
                          List<MultipartFile> fotos,
                          List<MultipartFile> videos,
@@ -208,6 +216,8 @@ public class ImovelService {
         }
         return imovelRepository.save(imovel);
     }
+
+    @Transactional(readOnly = true)
     public List<Imovel> findAll() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
@@ -231,9 +241,10 @@ public class ImovelService {
             return imovelRepository.findByCorretorId(corretorId);
         }
     }
+
+    @Transactional
     public void delete(Long id) {
         Imovel imovel = imovelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));
         imovelRepository.delete(imovel);
     }
-}

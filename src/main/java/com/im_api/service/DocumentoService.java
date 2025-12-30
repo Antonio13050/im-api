@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 public class DocumentoService {
 
@@ -18,6 +20,7 @@ public class DocumentoService {
         this.documentoRepository = documentoRepository;
     }
 
+    @Transactional
     public Documento saveDocument(Long processId, String documentName, String documentType,
                                   MultipartFile file) throws IOException {
         Documento document = new Documento();
@@ -33,15 +36,18 @@ public class DocumentoService {
         return documentoRepository.save(document);
     }
 
+    @Transactional(readOnly = true)
     public List<Documento> getDocumentsByProcessId(Long processId) {
         return documentoRepository.findByProcessoId(processId);
     }
 
+    @Transactional(readOnly = true)
     public Documento getDocumentById(Long documentId) {
         return documentoRepository.findById(documentId)
                 .orElseThrow(() -> new RuntimeException("Document not found"));
     }
 
+    @Transactional
     public void deleteDocument(Long documentId) {
         if (!documentoRepository.existsById(documentId)) {
             throw new RuntimeException("Document not found");

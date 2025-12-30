@@ -5,7 +5,7 @@ import com.im_api.service.DocumentoService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,7 +38,7 @@ public class DocumentoController {
     }
 
     @GetMapping("/processo/{processId}")
-    @Transactional(readOnly = true)
+
     public ResponseEntity<List<Documento>> getDocumentsByProcessId(@PathVariable Long processId) {
         List<Documento> documents = documentoService.getDocumentsByProcessId(processId);
         return ResponseEntity.ok(documents);

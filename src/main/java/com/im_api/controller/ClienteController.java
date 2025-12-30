@@ -6,7 +6,7 @@ import com.im_api.service.ClienteService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,14 +25,14 @@ public class ClienteController {
     }
 
     @GetMapping("/{id}")
-    @Transactional(readOnly = true)
+
     public ResponseEntity<ClienteDTO> findById(@PathVariable Long id) {
         ClienteDTO clienteDTO = clienteService.findById(id);
         return ResponseEntity.ok(clienteDTO);
     }
 
     @GetMapping
-    @Transactional(readOnly = true)
+
     public ResponseEntity<List<ClienteDTO>> findAll() {
         List<ClienteDTO> clientes = clienteService.findAll()
                 .stream()
@@ -42,7 +42,7 @@ public class ClienteController {
     }
 
     @PostMapping
-    @Transactional
+
     public ResponseEntity<ClienteDTO> create(
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
             @Valid @RequestPart("cliente") ClienteDTO clienteDTO) throws IOException {
@@ -52,7 +52,7 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    @Transactional
+
     public ResponseEntity<ClienteDTO> update(
             @PathVariable Long id,
             @RequestPart(value = "documentos", required = false) List<MultipartFile> documentos,
@@ -63,7 +63,7 @@ public class ClienteController {
     }
 
     @DeleteMapping("/{id}")
-    @Transactional
+
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         clienteService.delete(id);
         return ResponseEntity.noContent().build();

@@ -5,7 +5,7 @@ import com.im_api.model.Role;
 import com.im_api.model.User;
 import com.im_api.repository.RoleRepository;
 import com.im_api.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,6 +29,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public User create(UserCreateDTO userCreateDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
@@ -71,6 +72,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional(readOnly = true)
     public List<User> findUsersByRole(Long userId, String role) {
         if (role.contains("ADMIN")) {
             return userRepository.findByRoles_NomeIn(List.of("ADMIN", "CORRETOR", "GERENTE"));
@@ -80,6 +82,7 @@ public class UserService {
         return List.of();
     }
 
+    @Transactional
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }

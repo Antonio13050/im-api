@@ -6,7 +6,7 @@ import com.im_api.service.ImovelService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -20,13 +20,13 @@ public class ImovelController {
         this.imovelService = imovelService;
     }
     @GetMapping("/{id}")
-    @Transactional(readOnly = true)
+
     public ResponseEntity<ImovelDTO> findById(@PathVariable Long id) {
         ImovelDTO imovelDTO = imovelService.findById(id);
         return ResponseEntity.ok(imovelDTO);
     }
     @GetMapping
-    @Transactional(readOnly = true)
+
     public ResponseEntity<List<ImovelDTO>> findAll() {
         List<ImovelDTO> imoveis = imovelService.findAll()
                 .stream()
@@ -46,7 +46,7 @@ public class ImovelController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
     @PutMapping("/{id}")
-    @Transactional
+
     public ResponseEntity<ImovelDTO> update(
             @PathVariable Long id,
             @RequestPart(value = "fotos", required = false) List<MultipartFile> fotos,
@@ -59,7 +59,7 @@ public class ImovelController {
         return ResponseEntity.ok(responseDTO);
     }
     @DeleteMapping("/{id}")
-    @Transactional
+
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         imovelService.delete(id);
         return ResponseEntity.noContent().build();

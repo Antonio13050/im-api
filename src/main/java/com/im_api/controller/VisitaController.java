@@ -7,7 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class VisitaController {
     }
 
     @PutMapping("/{id}/status")
-    @Transactional
+
     public ResponseEntity<Visita> updateVisitStatus(@PathVariable Long id, @Valid @RequestBody UpdateStatusRequestDTO request) {
         try {
             Visita updated = visitaService.updateStatus(id, request.getStatus());
