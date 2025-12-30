@@ -1,6 +1,7 @@
 package com.im_api.service;
 
 import com.im_api.dto.UserCreateDTO;
+import com.im_api.mapper.UserMapper;
 import com.im_api.model.Role;
 import com.im_api.model.User;
 import com.im_api.repository.RoleRepository;
@@ -22,11 +23,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
     }
 
     @Transactional
@@ -47,13 +50,8 @@ public class UserService {
             throw new RuntimeException("Email já está em uso");
         }
 
-        User user = new User();
-        user.setNome(userCreateDTO.getNome());
-        user.setEmail(userCreateDTO.getEmail());
+        User user = userMapper.toEntity(userCreateDTO);
         user.setSenha(passwordEncoder.encode(userCreateDTO.getSenha()));
-        user.setTelefone(userCreateDTO.getTelefone());
-        user.setCreci(userCreateDTO.getCreci());
-        user.setAtivo(userCreateDTO.isAtivo());
 
         if (currentUserRole.equals("GERENTE")) {
             user.setGerenteId(Long.parseLong(currentUserId));
@@ -108,14 +106,12 @@ public class UserService {
             throw new RuntimeException("Email já está em uso");
         }
 
-        user.setNome(userUpdateDTO.getNome());
-        user.setEmail(userUpdateDTO.getEmail());
+        // Atualizar campos básicos via MapStruct
+        userMapper.updateEntityFromDTO(userUpdateDTO, user);
+
         if (userUpdateDTO.getSenha() != null && !userUpdateDTO.getSenha().isEmpty()) {
             user.setSenha(passwordEncoder.encode(userUpdateDTO.getSenha()));
         }
-        user.setTelefone(userUpdateDTO.getTelefone());
-        user.setCreci(userUpdateDTO.getCreci());
-        user.setAtivo(userUpdateDTO.isAtivo());
 
         if (currentUserRole.equals("ADMIN")) {
             user.setGerenteId(userUpdateDTO.getGerenteId());

@@ -2,6 +2,7 @@ package com.im_api.service;
 
 import com.im_api.dto.ClienteDTO;
 import com.im_api.dto.DocumentoClienteDTO;
+import com.im_api.mapper.ClienteMapper;
 import com.im_api.model.Cliente;
 import com.im_api.model.DocumentoCliente;
 import com.im_api.model.User;
@@ -25,17 +26,19 @@ public class ClienteService {
 
     private final ClienteRepository clienteRepository;
     private final UserRepository userRepository;
+    private final ClienteMapper clienteMapper;
 
-    public ClienteService(ClienteRepository clienteRepository, UserRepository userRepository) {
+    public ClienteService(ClienteRepository clienteRepository, UserRepository userRepository, ClienteMapper clienteMapper) {
         this.clienteRepository = clienteRepository;
         this.userRepository = userRepository;
+        this.clienteMapper = clienteMapper;
     }
 
     @Transactional(readOnly = true)
     public ClienteDTO findById(Long id) {
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cliente com ID " + id + " não encontrado"));
-        return new ClienteDTO(cliente);
+        return clienteMapper.toDTO(cliente);
     }
 
     @Transactional
@@ -58,29 +61,7 @@ public class ClienteService {
             throw new IllegalArgumentException("Perfil inválido: " + clienteDTO.getPerfil());
         }
 
-        Cliente cliente = new Cliente();
-        cliente.setNome(clienteDTO.getNome());
-        cliente.setEmail(clienteDTO.getEmail());
-        cliente.setEmailAlternativo(clienteDTO.getEmailAlternativo());
-        cliente.setTelefone(clienteDTO.getTelefone());
-        cliente.setTelefoneAlternativo(clienteDTO.getTelefoneAlternativo());
-        cliente.setCpfCnpj(clienteDTO.getCpfCnpj());
-        cliente.setDataNascimento(clienteDTO.getDataNascimento());
-        cliente.setEstadoCivil(clienteDTO.getEstadoCivil());
-        cliente.setProfissao(clienteDTO.getProfissao());
-        cliente.setCorretorId(clienteDTO.getCorretorId());
-        cliente.setPerfil(Perfil.valueOf(clienteDTO.getPerfil().toUpperCase()));
-        cliente.setEndereco(clienteDTO.getEndereco());
-        cliente.setRendaMensal(clienteDTO.getRendaMensal());
-        cliente.setBanco(clienteDTO.getBanco());
-        cliente.setAgencia(clienteDTO.getAgencia());
-        cliente.setConta(clienteDTO.getConta());
-        cliente.setScoreCredito(clienteDTO.getScoreCredito());
-        cliente.setRestricoesFinanceiras(clienteDTO.getRestricoesFinanceiras());
-        cliente.setObservacoesFinanceiras(clienteDTO.getObservacoesFinanceiras());
-        cliente.setInteresses(clienteDTO.getInteresses());
-        cliente.setObservacoes(clienteDTO.getObservacoes());
-        cliente.setObservacoesInternas(clienteDTO.getObservacoesInternas());
+        Cliente cliente = clienteMapper.toEntity(clienteDTO);
 
         // Processar documentos
         if (documentos != null && !documentos.isEmpty()) {
@@ -148,28 +129,8 @@ public class ClienteService {
         }
 
         // Atualizar campos básicos
-        cliente.setNome(clienteDTO.getNome());
-        cliente.setEmail(clienteDTO.getEmail());
-        cliente.setEmailAlternativo(clienteDTO.getEmailAlternativo());
-        cliente.setTelefone(clienteDTO.getTelefone());
-        cliente.setTelefoneAlternativo(clienteDTO.getTelefoneAlternativo());
-        cliente.setCpfCnpj(clienteDTO.getCpfCnpj());
-        cliente.setDataNascimento(clienteDTO.getDataNascimento());
-        cliente.setEstadoCivil(clienteDTO.getEstadoCivil());
-        cliente.setProfissao(clienteDTO.getProfissao());
-        cliente.setCorretorId(clienteDTO.getCorretorId());
-        cliente.setPerfil(Perfil.valueOf(clienteDTO.getPerfil().toUpperCase()));
-        cliente.setEndereco(clienteDTO.getEndereco());
-        cliente.setRendaMensal(clienteDTO.getRendaMensal());
-        cliente.setBanco(clienteDTO.getBanco());
-        cliente.setAgencia(clienteDTO.getAgencia());
-        cliente.setConta(clienteDTO.getConta());
-        cliente.setScoreCredito(clienteDTO.getScoreCredito());
-        cliente.setRestricoesFinanceiras(clienteDTO.getRestricoesFinanceiras());
-        cliente.setObservacoesFinanceiras(clienteDTO.getObservacoesFinanceiras());
-        cliente.setInteresses(clienteDTO.getInteresses());
-        cliente.setObservacoes(clienteDTO.getObservacoes());
-        cliente.setObservacoesInternas(clienteDTO.getObservacoesInternas());
+        // Atualizar campos básicos via MapStruct
+        clienteMapper.updateEntityFromDTO(clienteDTO, cliente);
 
         // Manter documentos existentes
         if (clienteDTO.getDocumentos() != null) {
@@ -225,7 +186,7 @@ public class ClienteService {
     }
 
     @Transactional(readOnly = true)
-    public List<Cliente> findAll() {
+    public List<ClienteDTO> findAll() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
         String currentUserRole = authentication.getAuthorities().stream()
@@ -234,8 +195,9 @@ public class ClienteService {
                 .map(role -> role.replace("SCOPE_", ""))
                 .orElseThrow(() -> new RuntimeException("Usuário sem role"));
 
+        List<Cliente> clientes;
         if (currentUserRole.equals("ADMIN")) {
-            return clienteRepository.findAll();
+            clientes = clienteRepository.findAll();
         } else if (currentUserRole.equals("GERENTE")) {
             Long gerenteId = Long.parseLong(currentUserId);
             List<User> teamUsers = userRepository.findByGerenteId(gerenteId);
@@ -243,11 +205,15 @@ public class ClienteService {
                     .map(User::getUserId)
                     .collect(Collectors.toList());
             teamIds.add(gerenteId);
-            return clienteRepository.findByCorretorIdIn(teamIds);
+            clientes = clienteRepository.findByCorretorIdIn(teamIds);
         } else {
             Long corretorId = Long.parseLong(currentUserId);
-            return clienteRepository.findByCorretorId(corretorId);
+            clientes = clienteRepository.findByCorretorId(corretorId);
         }
+
+        return clientes.stream()
+                .map(clienteMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional

@@ -28,10 +28,7 @@ public class ImovelController {
     @GetMapping
 
     public ResponseEntity<List<ImovelDTO>> findAll() {
-        List<ImovelDTO> imoveis = imovelService.findAll()
-                .stream()
-                .map(ImovelDTO::new)
-                .collect(Collectors.toList());
+        List<ImovelDTO> imoveis = imovelService.findAll();
         return ResponseEntity.ok(imoveis);
     }
     @PostMapping

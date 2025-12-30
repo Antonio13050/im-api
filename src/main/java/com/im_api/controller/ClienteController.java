@@ -34,10 +34,7 @@ public class ClienteController {
     @GetMapping
 
     public ResponseEntity<List<ClienteDTO>> findAll() {
-        List<ClienteDTO> clientes = clienteService.findAll()
-                .stream()
-                .map(ClienteDTO::new)
-                .collect(Collectors.toList());
+        List<ClienteDTO> clientes = clienteService.findAll();
         return ResponseEntity.ok(clientes);
     }
 

@@ -3,6 +3,7 @@ import com.im_api.dto.ImovelDTO;
 import com.im_api.dto.FotoDTO;
 import com.im_api.dto.VideoDTO;
 import com.im_api.dto.DocumentoImovelDTO;
+import com.im_api.mapper.ImovelMapper;
 import com.im_api.model.*;
 import com.im_api.repository.ImovelRepository;
 import com.im_api.repository.UserRepository;
@@ -21,10 +22,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class ImovelService {
     private final ImovelRepository imovelRepository;
     private final UserRepository userRepository;
-    public ImovelService(ImovelRepository imovelRepository, UserRepository userRepository) {
+    private final ImovelMapper imovelMapper;
+
+    public ImovelService(ImovelRepository imovelRepository, UserRepository userRepository, ImovelMapper imovelMapper) {
         this.imovelRepository = imovelRepository;
         this.userRepository = userRepository;
+        this.imovelMapper = imovelMapper;
     }
+
     // Gerar código único para o imóvel
     private String gerarCodigoImovel() {
         Long count = imovelRepository.count() + 1;
@@ -35,7 +40,7 @@ public class ImovelService {
     public ImovelDTO findById(Long id) {
         Imovel imovel = imovelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));
-        return new ImovelDTO(imovel);
+        return imovelMapper.toDTO(imovel);
     }
 
     @Transactional
@@ -44,7 +49,7 @@ public class ImovelService {
                          List<MultipartFile> videos,
                          List<MultipartFile> documentos) throws IOException {
 
-        Imovel imovel = new Imovel(imovelDTO);
+        Imovel imovel = imovelMapper.toEntity(imovelDTO);
 
         // Gerar código automático se não fornecido
         if (imovel.getCodigo() == null || imovel.getCodigo().isBlank()) {
@@ -100,57 +105,8 @@ public class ImovelService {
 
         Imovel imovel = imovelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));
-        // Atualizar campos básicos
-        imovel.setTitulo(dto.getTitulo());
-        imovel.setDescricao(dto.getDescricao());
-        imovel.setTipo(dto.getTipo());
-        imovel.setSubtipo(dto.getSubtipo());
-        imovel.setFinalidade(dto.getFinalidade());
-        imovel.setStatus(dto.getStatus());
-        imovel.setDestaque(dto.getDestaque());
-        imovel.setExclusividade(dto.getExclusividade());
-        imovel.setEndereco(dto.getEndereco());
-
-        // Áreas
-        imovel.setAreaTotal(dto.getAreaTotal());
-        imovel.setAreaConstruida(dto.getAreaConstruida());
-        imovel.setAreaUtil(dto.getAreaUtil());
-        imovel.setAnoConstrucao(dto.getAnoConstrucao());
-
-        // Cômodos
-        imovel.setQuartos(dto.getQuartos());
-        imovel.setSuites(dto.getSuites());
-        imovel.setBanheiros(dto.getBanheiros());
-        imovel.setVagas(dto.getVagas());
-        imovel.setVagasCobertas(dto.getVagasCobertas());
-        imovel.setAndares(dto.getAndares());
-
-        // Comodidades
-        imovel.setComodidades(dto.getComodidades());
-
-        // Financeiro
-        imovel.setPrecoVenda(dto.getPrecoVenda());
-        imovel.setPrecoAluguel(dto.getPrecoAluguel());
-        imovel.setPrecoTemporada(dto.getPrecoTemporada());
-        imovel.setValorCondominio(dto.getValorCondominio());
-        imovel.setValorIptu(dto.getValorIptu());
-        imovel.setValorEntrada(dto.getValorEntrada());
-        imovel.setAceitaFinanciamento(dto.getAceitaFinanciamento());
-        imovel.setAceitaFgts(dto.getAceitaFgts());
-        imovel.setAceitaPermuta(dto.getAceitaPermuta());
-        imovel.setPosseImediata(dto.getPosseImediata());
-        imovel.setComissaoVenda(dto.getComissaoVenda());
-        imovel.setComissaoAluguel(dto.getComissaoAluguel());
-
-        // Documentação
-        imovel.setSituacaoDocumental(dto.getSituacaoDocumental());
-        imovel.setObservacoesInternas(dto.getObservacoesInternas());
-
-        // Responsáveis
-        imovel.setProprietarioId(dto.getProprietarioId());
-        imovel.setInquilinoId(dto.getInquilinoId());
-        imovel.setClienteId(dto.getClienteId());
-        imovel.setCorretorId(dto.getCorretorId());
+        // Atualizar campos básicos via MapStruct
+        imovelMapper.updateEntityFromDTO(dto, imovel);
         // Manter fotos existentes
         if (dto.getFotos() != null) {
             List<Long> keepPhotoIds = dto.getFotos().stream()
@@ -218,7 +174,7 @@ public class ImovelService {
     }
 
     @Transactional(readOnly = true)
-    public List<Imovel> findAll() {
+    public List<ImovelDTO> findAll() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
         String currentUserRole = authentication.getAuthorities().stream()
@@ -226,8 +182,10 @@ public class ImovelService {
                 .map(Object::toString)
                 .map(role -> role.replace("SCOPE_", ""))
                 .orElseThrow(() -> new RuntimeException("Usuário sem role"));
+
+        List<Imovel> imoveis;
         if (currentUserRole.equals("ADMIN")) {
-            return imovelRepository.findAll();
+            imoveis = imovelRepository.findAll();
         } else if (currentUserRole.equals("GERENTE")) {
             Long gerenteId = Long.parseLong(currentUserId);
             List<User> teamUsers = userRepository.findByGerenteId(gerenteId);
@@ -235,11 +193,15 @@ public class ImovelService {
                     .map(User::getUserId)
                     .collect(Collectors.toList());
             teamIds.add(gerenteId);
-            return imovelRepository.findByCorretorIdIn(teamIds);
+            imoveis = imovelRepository.findByCorretorIdIn(teamIds);
         } else {
             Long corretorId = Long.parseLong(currentUserId);
-            return imovelRepository.findByCorretorId(corretorId);
+            imoveis = imovelRepository.findByCorretorId(corretorId);
         }
+
+        return imoveis.stream()
+                .map(imovelMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -248,3 +210,4 @@ public class ImovelService {
                 .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));
         imovelRepository.delete(imovel);
     }
+}

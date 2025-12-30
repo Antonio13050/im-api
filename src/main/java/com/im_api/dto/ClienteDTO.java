@@ -29,7 +29,7 @@ public class ClienteDTO {
     private String telefone;
     private String telefoneAlternativo;
 
-    @Pattern(regexp = "^\\d{11}$|^\\d{14}$", message = "CPF/CNPJ deve conter 11 ou 14 dígitos numéricos")
+    //@Pattern(regexp = "^\\d{11}$|^\\d{14}$", message = "CPF/CNPJ deve conter 11 ou 14 dígitos numéricos")
     private String cpfCnpj;
 
     private LocalDate dataNascimento;
