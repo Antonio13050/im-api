@@ -1,6 +1,7 @@
 package com.im_api.dto;
 
 import com.im_api.model.Endereco;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -32,6 +33,7 @@ public class ImovelRequestDTO {
     private Boolean destaque;
     private Boolean exclusividade;
 
+    @Valid
     @NotNull(message = "O endereço é obrigatório")
     private Endereco endereco;
 
