@@ -44,7 +44,6 @@ public class UserUpdateDTO {
 
     private String creci;
 
-    @Size(min = 2, max = 2, message = "UF do CRECI deve ter 2 caracteres")
     private String creciUf;
 
     private LocalDate creciValidade;

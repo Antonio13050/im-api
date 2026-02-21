@@ -52,7 +52,8 @@ public class GlobalExceptionHandler {
                         FieldError::getField,
                         error -> error.getDefaultMessage() != null ? error.getDefaultMessage() : "Erro desconhecido"
                 ));
-        log.warn("Erro de validação: {} campos inválidos - Path: {}", errors.size(), request.getRequestURI());
+        log.warn("Erro de validação: {} campos inválidos - Path: {} - Campos: {}", 
+                errors.size(), request.getRequestURI(), errors);
         ApiError error = new ApiError(HttpStatus.BAD_REQUEST, "Erro de validação", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
