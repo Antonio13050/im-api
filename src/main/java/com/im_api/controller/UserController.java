@@ -29,6 +29,14 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("/me")
+    @Operation(summary = "Usuário logado", description = "Retorna os dados do usuário atualmente logado")
+    public ResponseEntity<UserResponseDTO> getCurrentUser(Authentication authentication) {
+        Long userId = Long.valueOf(authentication.getName());
+        UserResponseDTO user = userService.getById(userId);
+        return ResponseEntity.ok(user);
+    }
+
     @GetMapping
     @Operation(summary = "Listar usuários", description = "Lista usuários conforme permissões do usuário logado")
     public ResponseEntity<List<UserResponseDTO>> list(Authentication authentication) {
@@ -82,15 +90,18 @@ public class UserController {
     @Operation(summary = "Alterar status do usuário", description = "Ativa ou desativa um usuário")
     public ResponseEntity<Void> updateStatus(
             @PathVariable Long id,
-            @RequestParam boolean ativo) {
-        userService.updateStatus(id, ativo);
+            @RequestParam boolean ativo,
+            Authentication authentication) {
+        Long currentUserId = Long.valueOf(authentication.getName());
+        userService.updateStatus(id, ativo, currentUserId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Excluir usuário", description = "Remove um usuário do sistema")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        userService.deleteUser(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
+        Long currentUserId = Long.valueOf(authentication.getName());
+        userService.deleteUser(id, currentUserId);
         return ResponseEntity.noContent().build();
     }
 }

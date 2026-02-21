@@ -33,7 +33,7 @@ public class AuthService {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if (!user.isLoginCorrect(loginRequest, passwordEncoder)) {
+        if (!passwordEncoder.matches(loginRequest.getSenha(), user.getSenha())) {
             throw new RuntimeException("Credenciais inválidas");
         }
 

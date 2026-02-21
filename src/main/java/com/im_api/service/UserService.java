@@ -140,7 +140,10 @@ public class UserService {
     }
 
     @Transactional
-    public void updateStatus(Long userId, boolean ativo) {
+    public void updateStatus(Long userId, boolean ativo, Long currentUserId) {
+        if (userId.equals(currentUserId)) {
+            throw new BusinessException("Não é possível alterar o status do próprio usuário");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado"));
         user.setAtivo(ativo);
@@ -148,7 +151,10 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(Long id) {
+    public void deleteUser(Long id, Long currentUserId) {
+        if (id.equals(currentUserId)) {
+            throw new BusinessException("Não é possível excluir seu próprio usuário");
+        }
         if (!userRepository.existsById(id)) {
             throw new BusinessException("Usuário não encontrado");
         }

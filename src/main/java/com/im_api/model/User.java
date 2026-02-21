@@ -1,12 +1,10 @@
 package com.im_api.model;
 
-import com.im_api.dto.LoginRequestDTO;
 import com.im_api.validation.CpfCnpj;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -98,8 +96,4 @@ public class User {
     private String conta;
 
     private String pix;
-
-    public boolean isLoginCorrect(LoginRequestDTO loginRequest, PasswordEncoder passwordEncoder) {
-        return passwordEncoder.matches(loginRequest.getSenha(), this.senha);
-    }
 }
