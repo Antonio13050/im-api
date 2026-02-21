@@ -4,8 +4,7 @@ import com.im_api.model.Cliente;
 import com.im_api.model.Visita;
 import com.im_api.repository.ClienteRepository;
 import com.im_api.repository.VisitaRepository;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.im_api.util.SecurityContextUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,10 +17,13 @@ public class VisitaService {
 
     private final VisitaRepository visitaRepository;
     private final ClienteRepository clienteRepository;
+    private final SecurityContextUtil securityContextUtil;
 
-    public VisitaService(VisitaRepository visitaRepository, ClienteRepository clienteRepository) {
+    public VisitaService(VisitaRepository visitaRepository, ClienteRepository clienteRepository,
+                         SecurityContextUtil securityContextUtil) {
         this.visitaRepository = visitaRepository;
         this.clienteRepository = clienteRepository;
+        this.securityContextUtil = securityContextUtil;
     }
 
     @Transactional(readOnly = true)
@@ -41,9 +43,7 @@ public class VisitaService {
 
     @Transactional
     public Visita create(Visita visit) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserId = authentication.getName();
-        Long corretorId = Long.parseLong(currentUserId);
+        Long corretorId = securityContextUtil.getCurrentUserIdAsLong();
         visit.setCorretorId(corretorId);
 
         Cliente cliente = clienteRepository.findById(visit.getClienteId())

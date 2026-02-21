@@ -11,7 +11,6 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.math.BigDecimal;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -50,6 +49,12 @@ public class ClienteRequestDTO {
     @Size(max = 100, message = "A profissão deve ter no máximo 100 caracteres")
     private String profissao;
 
+    @Size(max = 50, message = "A nacionalidade deve ter no máximo 50 caracteres")
+    private String nacionalidade;
+
+    @Size(max = 20, message = "O RG deve ter no máximo 20 caracteres")
+    private String rg;
+
     @Positive(message = "O ID do corretor deve ser positivo")
     private Long corretorId;
 
@@ -68,6 +73,8 @@ public class ClienteRequestDTO {
     private String banco;
     private String agencia;
     private String conta;
+    @Size(max = 100, message = "O PIX deve ter no máximo 100 caracteres")
+    private String pix;
     private Integer scoreCredito;
     private Boolean restricoesFinanceiras;
     private String observacoesFinanceiras;

@@ -9,9 +9,8 @@ import com.im_api.model.DocumentoCliente;
 import com.im_api.model.User;
 import com.im_api.repository.ClienteRepository;
 import com.im_api.repository.UserRepository;
+import com.im_api.util.SecurityContextUtil;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,11 +25,14 @@ public class ClienteService {
     private final ClienteRepository clienteRepository;
     private final UserRepository userRepository;
     private final ClienteMapper clienteMapper;
+    private final SecurityContextUtil securityContextUtil;
 
-    public ClienteService(ClienteRepository clienteRepository, UserRepository userRepository, ClienteMapper clienteMapper) {
+    public ClienteService(ClienteRepository clienteRepository, UserRepository userRepository, 
+                          ClienteMapper clienteMapper, SecurityContextUtil securityContextUtil) {
         this.clienteRepository = clienteRepository;
         this.userRepository = userRepository;
         this.clienteMapper = clienteMapper;
+        this.securityContextUtil = securityContextUtil;
     }
 
     @Transactional(readOnly = true)
@@ -42,19 +44,17 @@ public class ClienteService {
 
     @Transactional
     public ClienteResponseDTO create(ClienteRequestDTO clienteDTO, List<MultipartFile> documentos) throws IOException {
-        // Validação de negócio: verificar se corretor existe (validações de formato já feitas pelo @Valid)
         if (clienteDTO.getCorretorId() != null && !userRepository.existsById(clienteDTO.getCorretorId())) {
             throw new BusinessException("Corretor com ID " + clienteDTO.getCorretorId() + " não encontrado");
         }
 
         Cliente cliente = clienteMapper.toEntity(clienteDTO);
 
-        // Processar documentos
         if (documentos != null && !documentos.isEmpty()) {
             for (MultipartFile file : documentos) {
                 DocumentoCliente doc = new DocumentoCliente(
                         file.getOriginalFilename(),
-                        "outros", // tipo padrão, pode ser atualizado via DTO
+                        "outros",
                         file.getBytes(),
                         file.getContentType(),
                         file.getSize(),
@@ -73,28 +73,20 @@ public class ClienteService {
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cliente com ID " + id + " não encontrado"));
 
-        // Validação de negócio: verificar se corretor existe (validações de formato já feitas pelo @Valid)
         if (clienteDTO.getCorretorId() != null && !userRepository.existsById(clienteDTO.getCorretorId())) {
             throw new BusinessException("Corretor com ID " + clienteDTO.getCorretorId() + " não encontrado");
         }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserId = authentication.getName();
-        String currentUserRole = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(Object::toString)
-                .map(role -> role.replace("SCOPE_", ""))
-                .orElseThrow(() -> new RuntimeException("Usuário sem role"));
+        Long currentUserId = securityContextUtil.getCurrentUserIdAsLong();
+        String currentUserRole = securityContextUtil.getCurrentUserRole();
 
-        if (!currentUserRole.equals("ADMIN") && cliente.getCorretorId() != null &&
-                !cliente.getCorretorId().equals(Long.parseLong(currentUserId))) {
+        if (!securityContextUtil.isAdmin() && cliente.getCorretorId() != null &&
+                !cliente.getCorretorId().equals(currentUserId)) {
             throw new BusinessException("Você não tem permissão para atualizar este cliente");
         }
 
-        // Atualizar campos básicos
         clienteMapper.updateEntityFromDTO(clienteDTO, cliente);
 
-        // Adicionar novos documentos
         if (documentos != null && !documentos.isEmpty()) {
             for (MultipartFile file : documentos) {
                 DocumentoCliente doc = new DocumentoCliente(
@@ -115,28 +107,21 @@ public class ClienteService {
 
     @Transactional(readOnly = true)
     public List<ClienteResponseDTO> findAll() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserId = authentication.getName();
-        String currentUserRole = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(Object::toString)
-                .map(role -> role.replace("SCOPE_", ""))
-                .orElseThrow(() -> new RuntimeException("Usuário sem role"));
+        Long currentUserId = securityContextUtil.getCurrentUserIdAsLong();
+        String currentUserRole = securityContextUtil.getCurrentUserRole();
 
         List<Cliente> clientes;
-        if (currentUserRole.equals("ADMIN")) {
+        if (securityContextUtil.isAdmin()) {
             clientes = clienteRepository.findAll();
-        } else if (currentUserRole.equals("GERENTE")) {
-            Long gerenteId = Long.parseLong(currentUserId);
-            List<User> teamUsers = userRepository.findByGerenteId(gerenteId);
+        } else if (securityContextUtil.isGerente()) {
+            List<User> teamUsers = userRepository.findByGerenteId(currentUserId);
             List<Long> teamIds = teamUsers.stream()
                     .map(User::getUserId)
                     .collect(Collectors.toList());
-            teamIds.add(gerenteId);
+            teamIds.add(currentUserId);
             clientes = clienteRepository.findByCorretorIdIn(teamIds);
         } else {
-            Long corretorId = Long.parseLong(currentUserId);
-            clientes = clienteRepository.findByCorretorId(corretorId);
+            clientes = clienteRepository.findByCorretorId(currentUserId);
         }
 
         return clientes.stream()
@@ -149,20 +134,13 @@ public class ClienteService {
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cliente com ID " + id + " não encontrado"));
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserId = authentication.getName();
-        String currentUserRole = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(Object::toString)
-                .map(role -> role.replace("SCOPE_", ""))
-                .orElseThrow(() -> new RuntimeException("Usuário sem role"));
+        Long currentUserId = securityContextUtil.getCurrentUserIdAsLong();
 
-        if (!currentUserRole.equals("ADMIN") && cliente.getCorretorId() != null &&
-                !cliente.getCorretorId().equals(Long.parseLong(currentUserId))) {
+        if (!securityContextUtil.isAdmin() && cliente.getCorretorId() != null &&
+                !cliente.getCorretorId().equals(currentUserId)) {
             throw new BusinessException("Você não tem permissão para excluir este cliente");
         }
 
         clienteRepository.delete(cliente);
     }
 }
-

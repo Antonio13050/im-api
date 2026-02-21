@@ -14,11 +14,13 @@ public interface ClienteMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdDate", ignore = true)
+    @Mapping(target = "updatedDate", ignore = true)
     @Mapping(target = "documentos", ignore = true)
     Cliente toEntity(ClienteRequestDTO dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdDate", ignore = true)
+    @Mapping(target = "updatedDate", ignore = true)
     @Mapping(target = "documentos", ignore = true)
     void updateEntityFromDTO(ClienteRequestDTO dto, @MappingTarget Cliente cliente);
 }

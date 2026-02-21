@@ -27,10 +27,13 @@ public class ClienteResponseDTO {
     private LocalDate dataNascimento;
     private String estadoCivil;
     private String profissao;
+    private String nacionalidade;
+    private String rg;
     private Long corretorId;
     private String perfil;
 
     private LocalDateTime createdDate;
+    private LocalDateTime updatedDate;
 
     // Endereço
     private Endereco endereco;
@@ -40,6 +43,7 @@ public class ClienteResponseDTO {
     private String banco;
     private String agencia;
     private String conta;
+    private String pix;
     private Integer scoreCredito;
     private Boolean restricoesFinanceiras;
     private String observacoesFinanceiras;

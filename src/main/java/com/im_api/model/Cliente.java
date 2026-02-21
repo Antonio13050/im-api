@@ -4,6 +4,8 @@ import com.im_api.model.enums.Perfil;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,6 +34,8 @@ public class Cliente {
     private LocalDate dataNascimento;
     private String estadoCivil;
     private String profissao;
+    private String nacionalidade;
+    private String rg;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -44,6 +48,9 @@ public class Cliente {
     @Column(updatable = false)
     private LocalDateTime createdDate;
 
+    @UpdateTimestamp
+    private LocalDateTime updatedDate;
+
     // Endereço
     @Embedded
     private Endereco endereco;
@@ -53,6 +60,7 @@ public class Cliente {
     private String banco;
     private String agencia;
     private String conta;
+    private String pix;
     private Integer scoreCredito;
     @Builder.Default
     private Boolean restricoesFinanceiras = false;
@@ -74,4 +82,3 @@ public class Cliente {
     @Builder.Default
     private List<DocumentoCliente> documentos = new ArrayList<>();
 }
-

@@ -9,11 +9,10 @@ import com.im_api.model.Role;
 import com.im_api.model.User;
 import com.im_api.repository.RoleRepository;
 import com.im_api.repository.UserRepository;
+import com.im_api.util.SecurityContextUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,13 +28,16 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
+    private final SecurityContextUtil securityContextUtil;
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository, 
-                       PasswordEncoder passwordEncoder, UserMapper userMapper) {
+                       PasswordEncoder passwordEncoder, UserMapper userMapper,
+                       SecurityContextUtil securityContextUtil) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
+        this.securityContextUtil = securityContextUtil;
     }
 
     @Transactional
@@ -176,8 +178,7 @@ public class UserService {
     }
 
     private void validateAdminOrGerentePermission(String action) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserRole = extractRole(auth);
+        String currentUserRole = securityContextUtil.getCurrentUserRole();
         
         if (!currentUserRole.equals("ADMIN") && !currentUserRole.equals("GERENTE")) {
             throw new BusinessException("Apenas ADMIN ou GERENTE podem " + action);
@@ -185,18 +186,16 @@ public class UserService {
     }
 
     private Long resolveGerenteId(Long requestGerenteId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserRole = extractRole(auth);
+        String currentUserRole = securityContextUtil.getCurrentUserRole();
         
         if (currentUserRole.equals("GERENTE")) {
-            return Long.parseLong(auth.getName());
+            return securityContextUtil.getCurrentUserIdAsLong();
         }
         return requestGerenteId;
     }
 
     private Role validateAndFindRole(String roleName) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserRole = extractRole(auth);
+        String currentUserRole = securityContextUtil.getCurrentUserRole();
         String normalizedRole = roleName.toUpperCase();
 
         if (currentUserRole.equals("ADMIN")) {
@@ -214,13 +213,5 @@ public class UserService {
         
         return roleRepository.findByNome(normalizedRole)
                 .orElseThrow(() -> new BusinessException("Role não encontrada: " + normalizedRole));
-    }
-
-    private String extractRole(Authentication auth) {
-        return auth.getAuthorities().stream()
-                .findFirst()
-                .map(Object::toString)
-                .map(role -> role.replace("SCOPE_", ""))
-                .orElseThrow(() -> new BusinessException("Usuário sem role"));
     }
 }

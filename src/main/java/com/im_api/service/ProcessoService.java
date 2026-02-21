@@ -7,9 +7,8 @@ import com.im_api.model.User;
 import com.im_api.repository.ProcessoRepository;
 import com.im_api.repository.ProcessoStatusHistoryRepository;
 import com.im_api.repository.UserRepository;
+import com.im_api.util.SecurityContextUtil;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,44 +22,37 @@ public class ProcessoService {
     private final ProcessoRepository processoRepository;
     private final UserRepository userRepository;
     private final ProcessoStatusHistoryRepository historyRepository;
+    private final SecurityContextUtil securityContextUtil;
 
-    public ProcessoService(ProcessoRepository processoRepository, UserRepository userRepository, ProcessoStatusHistoryRepository historyRepository) {
+    public ProcessoService(ProcessoRepository processoRepository, UserRepository userRepository,
+                           ProcessoStatusHistoryRepository historyRepository, SecurityContextUtil securityContextUtil) {
         this.processoRepository = processoRepository;
         this.userRepository = userRepository;
         this.historyRepository = historyRepository;
+        this.securityContextUtil = securityContextUtil;
     }
 
     @Transactional(readOnly = true)
     public List<Processo> findAll() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserId = authentication.getName();
-        String currentUserRole = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(Object::toString)
-                .map(role -> role.replace("SCOPE_", ""))
-                .orElseThrow(() -> new RuntimeException("Usuário sem role"));
+        Long currentUserId = securityContextUtil.getCurrentUserIdAsLong();
+        String currentUserRole = securityContextUtil.getCurrentUserRole();
 
-        if (currentUserRole.equals("ADMIN")) {
+        if (securityContextUtil.isAdmin()) {
             return processoRepository.findAll();
-        } else if (currentUserRole.equals("GERENTE")) {
-            Long gerenteId = Long.parseLong(currentUserId);
-
-            List<User> teamUsers = userRepository.findByGerenteId(gerenteId);
+        } else if (securityContextUtil.isGerente()) {
+            List<User> teamUsers = userRepository.findByGerenteId(currentUserId);
             List<Long> teamIds = teamUsers.stream()
                     .map(User::getUserId)
                     .collect(Collectors.toList());
-            teamIds.add(gerenteId);
+            teamIds.add(currentUserId);
             return processoRepository.findByCorretorIdIn(teamIds);
         }
-        Long corretorId = Long.parseLong(currentUserId);
-        return processoRepository.findByCorretorId(corretorId);
+        return processoRepository.findByCorretorId(currentUserId);
     }
 
     @Transactional
     public Processo create(Processo processo) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserId = authentication.getName();
-        Long corretorId = Long.parseLong(currentUserId);
+        Long corretorId = securityContextUtil.getCurrentUserIdAsLong();
         processo.setCorretorId(corretorId);
         Processo saved = processoRepository.save(processo);
         historyRepository.save(new ProcessoStatusHistory(
@@ -74,9 +66,7 @@ public class ProcessoService {
 
     @Transactional
     public Processo updateStatus(Long id, UpdateStatusRequestDTO request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserId = authentication.getName();
-        Long corretorId = Long.parseLong(currentUserId);
+        Long corretorId = securityContextUtil.getCurrentUserIdAsLong();
 
         Processo processo = processoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Processo não encontrado"));
