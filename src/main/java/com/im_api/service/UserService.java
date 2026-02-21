@@ -1,11 +1,16 @@
 package com.im_api.service;
 
 import com.im_api.dto.UserCreateDTO;
+import com.im_api.dto.UserResponseDTO;
+import com.im_api.dto.UserUpdateDTO;
+import com.im_api.exception.BusinessException;
 import com.im_api.mapper.UserMapper;
 import com.im_api.model.Role;
 import com.im_api.model.User;
 import com.im_api.repository.RoleRepository;
 import com.im_api.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,7 +30,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, UserMapper userMapper) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, 
+                       PasswordEncoder passwordEncoder, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -33,105 +39,201 @@ public class UserService {
     }
 
     @Transactional
-    public User create(UserCreateDTO userCreateDTO) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserId = authentication.getName();
-        String currentUserRole = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(Object::toString)
-                .map(role -> role.replace("SCOPE_", ""))
-                .orElseThrow(() -> new RuntimeException("Usuário sem role"));
-
-        if (!currentUserRole.equals("ADMIN") && !currentUserRole.equals("GERENTE")) {
-            throw new RuntimeException("Apenas ADMIN ou GERENTE podem criar usuários");
-        }
+    public UserResponseDTO create(UserCreateDTO userCreateDTO) {
+        validateCreatePermission();
 
         if (userRepository.findByEmail(userCreateDTO.getEmail()).isPresent()) {
-            throw new RuntimeException("Email já está em uso");
+            throw new BusinessException("Email já está em uso");
         }
+
+        if (userCreateDTO.getCpf() != null && !userCreateDTO.getCpf().isBlank()) {
+            if (userRepository.findByCpf(userCreateDTO.getCpf()).isPresent()) {
+                throw new BusinessException("CPF já está cadastrado");
+            }
+        }
+
+        validateCreciForRole(userCreateDTO.getRole(), userCreateDTO.getCreci(), null);
 
         User user = userMapper.toEntity(userCreateDTO);
         user.setSenha(passwordEncoder.encode(userCreateDTO.getSenha()));
+        user.setGerenteId(resolveGerenteId(userCreateDTO.getGerenteId()));
 
-        if (currentUserRole.equals("GERENTE")) {
-            user.setGerenteId(Long.parseLong(currentUserId));
-        } else {
-            user.setGerenteId(userCreateDTO.getGerenteId());
-        }
-
-        String roleName = userCreateDTO.getRole().toUpperCase();
-        if (!roleName.equals("CORRETOR") && !roleName.equals("GERENTE")) {
-            throw new RuntimeException("Role inválida: deve ser CORRETOR ou GERENTE");
-        }
-        Role role = roleRepository.findByNome(roleName)
-                .orElseThrow(() -> new RuntimeException("Role não encontrada: " + roleName));
+        Role role = validateAndFindRole(userCreateDTO.getRole());
         user.setRoles(Collections.singleton(role));
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        return userMapper.toResponseDTO(savedUser);
     }
 
     @Transactional(readOnly = true)
-    public List<User> findUsersByRole(Long userId, String role) {
+    public UserResponseDTO getById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado"));
+        return userMapper.toResponseDTO(user);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserResponseDTO> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(userMapper::toResponseDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserResponseDTO> findByRole(String role, Pageable pageable) {
+        return userRepository.findByRoles_Nome(role, pageable)
+                .map(userMapper::toResponseDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserResponseDTO> findUsersByRole(Long userId, String role) {
         if (role.contains("ADMIN")) {
-            return userRepository.findByRoles_NomeIn(List.of("ADMIN", "CORRETOR", "GERENTE"));
+            return userRepository.findByRoles_NomeIn(List.of("ADMIN", "CORRETOR", "GERENTE", "SECRETARIO"))
+                    .stream()
+                    .map(userMapper::toResponseDTO)
+                    .toList();
         } else if (role.contains("GERENTE")) {
-            return userRepository.findByRoles_NomeAndGerenteId("CORRETOR", userId);
+            return userRepository.findByGerenteId(userId)
+                    .stream()
+                    .map(userMapper::toResponseDTO)
+                    .toList();
         }
         return List.of();
     }
 
     @Transactional
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
-    }
-
-    @Transactional
-    public User update(Long userId, UserCreateDTO userUpdateDTO) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserRole = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(Object::toString)
-                .map(role -> role.replace("SCOPE_", ""))
-                .orElseThrow(() -> new RuntimeException("Usuário sem role"));
-
-        if (!currentUserRole.equals("ADMIN") && !currentUserRole.equals("GERENTE")) {
-            throw new RuntimeException("Apenas ADMIN ou GERENTE podem atualizar usuários");
-        }
+    public UserResponseDTO update(Long userId, UserUpdateDTO userUpdateDTO) {
+        validateUpdatePermission();
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + userId));
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado: " + userId));
 
-        if (!user.getEmail().equals(userUpdateDTO.getEmail()) &&
-                userRepository.findByEmail(userUpdateDTO.getEmail()).isPresent()) {
-            throw new RuntimeException("Email já está em uso");
+        if (!user.getEmail().equals(userUpdateDTO.getEmail())) {
+            if (userRepository.findByEmail(userUpdateDTO.getEmail()).isPresent()) {
+                throw new BusinessException("Email já está em uso");
+            }
         }
 
-        // Atualizar campos básicos via MapStruct
+        if (userUpdateDTO.getCpf() != null && !userUpdateDTO.getCpf().isBlank()) {
+            if (!userUpdateDTO.getCpf().equals(user.getCpf()) && 
+                userRepository.findByCpf(userUpdateDTO.getCpf()).isPresent()) {
+                throw new BusinessException("CPF já está cadastrado");
+            }
+        }
+
+        validateCreciForRole(userUpdateDTO.getRole(), userUpdateDTO.getCreci(), user.getCreci());
+
         userMapper.updateEntityFromDTO(userUpdateDTO, user);
 
-        if (userUpdateDTO.getSenha() != null && !userUpdateDTO.getSenha().isEmpty()) {
+        if (userUpdateDTO.getSenha() != null && !userUpdateDTO.getSenha().isBlank()) {
             user.setSenha(passwordEncoder.encode(userUpdateDTO.getSenha()));
         }
 
-        if (currentUserRole.equals("ADMIN")) {
-            user.setGerenteId(userUpdateDTO.getGerenteId());
-        } else {
-            user.setGerenteId(Long.parseLong(authentication.getName()));
-        }
+        user.setGerenteId(resolveGerenteIdForUpdate(userUpdateDTO.getGerenteId()));
 
-        String roleName = userUpdateDTO.getRole().toUpperCase();
-        if (!roleName.equals("CORRETOR") && !roleName.equals("GERENTE")) {
-            throw new RuntimeException("Role inválida: deve ser CORRETOR ou GERENTE");
-        }
-        Role role = roleRepository.findByNome(roleName)
-                .orElseThrow(() -> new RuntimeException("Role não encontrada: " + roleName));
-
+        Role role = validateAndFindRole(userUpdateDTO.getRole());
         Set<Role> newRoles = new HashSet<>();
         newRoles.add(role);
         user.setRoles(newRoles);
 
-        System.out.println("Updating user: " + userId + ", new role: " + roleName + ", gerenteId: " + userUpdateDTO.getGerenteId());
+        User savedUser = userRepository.save(user);
+        return userMapper.toResponseDTO(savedUser);
+    }
 
-        return userRepository.save(user);
+    @Transactional
+    public void updateStatus(Long userId, boolean ativo) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado"));
+        user.setAtivo(ativo);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new BusinessException("Usuário não encontrado");
+        }
+        userRepository.deleteById(id);
+    }
+
+    private void validateCreciForRole(String role, String newCreci, String currentCreci) {
+        if ("CORRETOR".equalsIgnoreCase(role)) {
+            String creci = newCreci != null ? newCreci : currentCreci;
+            if (creci == null || creci.isBlank()) {
+                throw new BusinessException("CRECI é obrigatório para corretores");
+            }
+            if (newCreci != null && !newCreci.equals(currentCreci)) {
+                if (userRepository.findByCreci(newCreci).isPresent()) {
+                    throw new BusinessException("CRECI já está cadastrado");
+                }
+            }
+        }
+    }
+
+    private void validateCreatePermission() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserRole = extractRole(auth);
+        
+        if (!currentUserRole.equals("ADMIN") && !currentUserRole.equals("GERENTE")) {
+            throw new BusinessException("Apenas ADMIN ou GERENTE podem criar usuários");
+        }
+    }
+
+    private void validateUpdatePermission() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserRole = extractRole(auth);
+        
+        if (!currentUserRole.equals("ADMIN") && !currentUserRole.equals("GERENTE")) {
+            throw new BusinessException("Apenas ADMIN ou GERENTE podem atualizar usuários");
+        }
+    }
+
+    private Long resolveGerenteId(Long requestGerenteId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserRole = extractRole(auth);
+        
+        if (currentUserRole.equals("GERENTE")) {
+            return Long.parseLong(auth.getName());
+        }
+        return requestGerenteId;
+    }
+
+    private Long resolveGerenteIdForUpdate(Long requestGerenteId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserRole = extractRole(auth);
+        
+        if (currentUserRole.equals("ADMIN")) {
+            return requestGerenteId;
+        }
+        return Long.parseLong(auth.getName());
+    }
+
+    private Role validateAndFindRole(String roleName) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserRole = extractRole(auth);
+        String normalizedRole = roleName.toUpperCase();
+
+        if (currentUserRole.equals("ADMIN")) {
+            if (!normalizedRole.equals("ADMIN") && 
+                !normalizedRole.equals("GERENTE") && 
+                !normalizedRole.equals("CORRETOR") && 
+                !normalizedRole.equals("SECRETARIO")) {
+                throw new BusinessException("Role inválida: deve ser ADMIN, GERENTE, CORRETOR ou SECRETARIO");
+            }
+        } else {
+            if (!normalizedRole.equals("CORRETOR")) {
+                throw new BusinessException("Gerentes só podem criar usuários com role CORRETOR");
+            }
+        }
+        
+        return roleRepository.findByNome(normalizedRole)
+                .orElseThrow(() -> new BusinessException("Role não encontrada: " + normalizedRole));
+    }
+
+    private String extractRole(Authentication auth) {
+        return auth.getAuthorities().stream()
+                .findFirst()
+                .map(Object::toString)
+                .map(role -> role.replace("SCOPE_", ""))
+                .orElseThrow(() -> new BusinessException("Usuário sem role"));
     }
 }

@@ -1,11 +1,15 @@
 package com.im_api.model;
 
 import com.im_api.dto.LoginRequestDTO;
+import com.im_api.validation.CpfCnpj;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,7 +37,12 @@ public class User {
 
     private String telefone;
 
-    private String creci;
+    @CpfCnpj
+    @Column(unique = true)
+    private String cpf;
+
+    @Column(name = "data_nascimento")
+    private LocalDate dataNascimento;
 
     @Builder.Default
     private boolean ativo = true;
@@ -42,10 +51,14 @@ public class User {
     private Long gerenteId;
 
     @CreationTimestamp
-    @Column(updatable = false)
+    @Column(name = "created_date", updatable = false)
     private LocalDateTime createdDate;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @UpdateTimestamp
+    @Column(name = "updated_date")
+    private LocalDateTime updatedDate;
+
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -53,6 +66,38 @@ public class User {
     )
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
+
+    @Column(unique = true)
+    private String creci;
+
+    @Column(name = "creci_uf", length = 2)
+    private String creciUf;
+
+    @Column(name = "creci_validade")
+    private LocalDate creciValidade;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_contratacao")
+    private TipoContratacao tipoContratacao;
+
+    @Column(name = "regiao_atuacao", columnDefinition = "TEXT")
+    private String regiaoAtuacao;
+
+    private String especialidade;
+
+    @Column(name = "comissao_venda_padrao", precision = 5, scale = 2)
+    private BigDecimal comissaoVendaPadrao;
+
+    @Column(name = "comissao_locacao_padrao", precision = 5, scale = 2)
+    private BigDecimal comissaoLocacaoPadrao;
+
+    private String banco;
+
+    private String agencia;
+
+    private String conta;
+
+    private String pix;
 
     public boolean isLoginCorrect(LoginRequestDTO loginRequest, PasswordEncoder passwordEncoder) {
         return passwordEncoder.matches(loginRequest.getSenha(), this.senha);

@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserCreateDTO {
+public class UserUpdateDTO {
 
     @NotBlank(message = "O nome é obrigatório")
     @Size(min = 2, max = 255, message = "O nome deve ter entre 2 e 255 caracteres")
@@ -24,7 +24,6 @@ public class UserCreateDTO {
     @Email(message = "Email inválido")
     private String email;
 
-    @NotBlank(message = "A senha é obrigatória")
     @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
     private String senha;
 
@@ -35,8 +34,7 @@ public class UserCreateDTO {
 
     private LocalDate dataNascimento;
 
-    @Builder.Default
-    private boolean ativo = true;
+    private boolean ativo;
 
     private Long gerenteId;
 

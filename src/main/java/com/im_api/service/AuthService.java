@@ -11,8 +11,14 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 public class AuthService {
+
+    private static final long TOKEN_EXPIRATION_SECONDS = 86400;
+
     private final UserRepository userRepository;
     private final JwtEncoder jwtEncoder;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -31,22 +37,33 @@ public class AuthService {
             throw new RuntimeException("Credenciais inválidas");
         }
 
-        String role = user.getRoles().stream()
+        if (!user.isAtivo()) {
+            throw new RuntimeException("Usuário inativo");
+        }
+
+        Set<String> roles = user.getRoles().stream()
                 .map(Role::getNome)
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Nenhum papel associado ao usuário"));
+                .collect(Collectors.toSet());
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(java.time.Instant.now())
-                .expiresAt(java.time.Instant.now().plusSeconds(86400))
+                .expiresAt(java.time.Instant.now().plusSeconds(TOKEN_EXPIRATION_SECONDS))
                 .subject(user.getUserId().toString())
-                .claim("scope", role)
+                .claim("scope", String.join(" ", roles))
                 .claim("email", user.getEmail())
                 .claim("nome", user.getNome())
                 .build();
 
         String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-        return new LoginResponseDTO(token);
+
+        return LoginResponseDTO.builder()
+                .token(token)
+                .userId(user.getUserId())
+                .nome(user.getNome())
+                .email(user.getEmail())
+                .roles(roles)
+                .expiresIn(TOKEN_EXPIRATION_SECONDS)
+                .build();
     }
 }
