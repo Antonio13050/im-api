@@ -40,7 +40,7 @@ public class UserService {
 
     @Transactional
     public UserResponseDTO create(UserCreateDTO userCreateDTO) {
-        validateCreatePermission();
+        validateAdminOrGerentePermission("criar usuários");
 
         if (userRepository.findByEmail(userCreateDTO.getEmail()).isPresent()) {
             throw new BusinessException("Email já está em uso");
@@ -102,7 +102,7 @@ public class UserService {
 
     @Transactional
     public UserResponseDTO update(Long userId, UserUpdateDTO userUpdateDTO) {
-        validateUpdatePermission();
+        validateAdminOrGerentePermission("atualizar usuários");
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado: " + userId));
@@ -128,7 +128,7 @@ public class UserService {
             user.setSenha(passwordEncoder.encode(userUpdateDTO.getSenha()));
         }
 
-        user.setGerenteId(resolveGerenteIdForUpdate(userUpdateDTO.getGerenteId()));
+        user.setGerenteId(resolveGerenteId(userUpdateDTO.getGerenteId()));
 
         Role role = validateAndFindRole(userUpdateDTO.getRole());
         Set<Role> newRoles = new HashSet<>();
@@ -175,21 +175,12 @@ public class UserService {
         }
     }
 
-    private void validateCreatePermission() {
+    private void validateAdminOrGerentePermission(String action) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentUserRole = extractRole(auth);
         
         if (!currentUserRole.equals("ADMIN") && !currentUserRole.equals("GERENTE")) {
-            throw new BusinessException("Apenas ADMIN ou GERENTE podem criar usuários");
-        }
-    }
-
-    private void validateUpdatePermission() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserRole = extractRole(auth);
-        
-        if (!currentUserRole.equals("ADMIN") && !currentUserRole.equals("GERENTE")) {
-            throw new BusinessException("Apenas ADMIN ou GERENTE podem atualizar usuários");
+            throw new BusinessException("Apenas ADMIN ou GERENTE podem " + action);
         }
     }
 
@@ -201,16 +192,6 @@ public class UserService {
             return Long.parseLong(auth.getName());
         }
         return requestGerenteId;
-    }
-
-    private Long resolveGerenteIdForUpdate(Long requestGerenteId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserRole = extractRole(auth);
-        
-        if (currentUserRole.equals("ADMIN")) {
-            return requestGerenteId;
-        }
-        return Long.parseLong(auth.getName());
     }
 
     private Role validateAndFindRole(String roleName) {
