@@ -2,9 +2,14 @@ package com.im_api.controller;
 
 import com.im_api.dto.ImovelRequestDTO;
 import com.im_api.dto.ImovelResponseDTO;
+import com.im_api.dto.ImovelFilterDTO;
 import com.im_api.model.Imovel;
 import com.im_api.service.ImovelService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -25,11 +30,21 @@ public class ImovelController {
         ImovelResponseDTO imovelDTO = imovelService.findById(id);
         return ResponseEntity.ok(imovelDTO);
     }
+
+//    @GetMapping
+//    public ResponseEntity<List<ImovelResponseDTO>> findAll() {
+//        List<ImovelResponseDTO> imoveis = imovelService.findAll();
+//        return ResponseEntity.ok(imoveis);
+//    }
+
     @GetMapping
-    public ResponseEntity<List<ImovelResponseDTO>> findAll() {
-        List<ImovelResponseDTO> imoveis = imovelService.findAll();
-        return ResponseEntity.ok(imoveis);
+    public ResponseEntity<Page<ImovelResponseDTO>> findAll(
+            @ModelAttribute ImovelFilterDTO filters,
+            @PageableDefault(size = 10, page = 0) final Pageable pageable) {
+        Page<ImovelResponseDTO> imoveisPage = imovelService.findAllPaged(pageable, filters);
+        return ResponseEntity.ok(imoveisPage);
     }
+
     @PostMapping
     public ResponseEntity<ImovelResponseDTO> create(
             @RequestPart(value = "fotos", required = false) List<MultipartFile> fotos,

@@ -9,6 +9,9 @@ import com.im_api.model.*;
 import com.im_api.repository.ImovelRepository;
 import com.im_api.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import com.im_api.dto.ImovelFilterDTO;
+import com.im_api.repository.spec.ImovelSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -178,8 +184,48 @@ public class ImovelService {
         return imovelMapper.toDTO(savedImovel);
     }
 
+//    @Transactional(readOnly = true)
+//    public List<ImovelResponseDTO> findAll() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String currentUserId = authentication.getName();
+//        String currentUserRole = authentication.getAuthorities().stream()
+//                .findFirst()
+//                .map(Object::toString)
+//                .map(role -> role.replace("SCOPE_", ""))
+//                .orElseThrow(() -> new RuntimeException("Usuário sem role"));
+//
+//        List<Imovel> imoveis;
+//        if (currentUserRole.equals("ADMIN")) {
+//            imoveis = imovelRepository.findAll();
+//        } else if (currentUserRole.equals("GERENTE")) {
+//            Long gerenteId = Long.parseLong(currentUserId);
+//            List<User> teamUsers = userRepository.findByGerenteId(gerenteId);
+//            List<Long> teamIds = teamUsers.stream()
+//                    .map(User::getUserId)
+//                    .collect(Collectors.toList());
+//            teamIds.add(gerenteId);
+//            imoveis = imovelRepository.findByCorretorIdIn(teamIds);
+//        } else {
+//            Long corretorId = Long.parseLong(currentUserId);
+//            imoveis = imovelRepository.findByCorretorId(corretorId);
+//        }
+//
+//        return imoveis.stream()
+//                .map(imovelMapper::toDTO)
+//                .collect(Collectors.toList());
+//    }
+
+    @Transactional
+    public void delete(Long id) {
+        Imovel imovel = imovelRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));
+        imovelRepository.delete(imovel);
+    }
+
+
+
     @Transactional(readOnly = true)
-    public List<ImovelResponseDTO> findAll() {
+    public Page<ImovelResponseDTO> findAllPaged(Pageable pageable, ImovelFilterDTO filters) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
         String currentUserRole = authentication.getAuthorities().stream()
@@ -188,31 +234,24 @@ public class ImovelService {
                 .map(role -> role.replace("SCOPE_", ""))
                 .orElseThrow(() -> new RuntimeException("Usuário sem role"));
 
-        List<Imovel> imoveis;
-        if (currentUserRole.equals("ADMIN")) {
-            imoveis = imovelRepository.findAll();
-        } else if (currentUserRole.equals("GERENTE")) {
+        Specification<Imovel> spec = ImovelSpecification.withFilters(filters);
+
+        if (currentUserRole.equals("GERENTE")) {
             Long gerenteId = Long.parseLong(currentUserId);
             List<User> teamUsers = userRepository.findByGerenteId(gerenteId);
             List<Long> teamIds = teamUsers.stream()
                     .map(User::getUserId)
                     .collect(Collectors.toList());
             teamIds.add(gerenteId);
-            imoveis = imovelRepository.findByCorretorIdIn(teamIds);
-        } else {
-            Long corretorId = Long.parseLong(currentUserId);
-            imoveis = imovelRepository.findByCorretorId(corretorId);
+            
+            Specification<Imovel> scopeSpec = (root, query, cb) -> root.get("corretorId").in(teamIds);
+            spec = spec.and(scopeSpec);
+        } else if (currentUserRole.equals("CORRETOR")) {
+             Long corretorId = Long.parseLong(currentUserId);
+             Specification<Imovel> scopeSpec = (root, query, cb) -> cb.equal(root.get("corretorId"), corretorId);
+             spec = spec.and(scopeSpec);
         }
 
-        return imoveis.stream()
-                .map(imovelMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public void delete(Long id) {
-        Imovel imovel = imovelRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Imóvel com ID " + id + " não encontrado"));
-        imovelRepository.delete(imovel);
+        return imovelRepository.findAll(spec, pageable).map(imovelMapper::toDTO);
     }
 }
