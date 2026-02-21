@@ -2,6 +2,7 @@ package com.im_api.service;
 
 import com.im_api.dto.LoginRequestDTO;
 import com.im_api.dto.LoginResponseDTO;
+import com.im_api.exception.BusinessException;
 import com.im_api.model.Role;
 import com.im_api.model.User;
 import com.im_api.repository.UserRepository;
@@ -31,14 +32,14 @@ public class AuthService {
 
     public LoginResponseDTO login(LoginRequestDTO loginRequest) {
         User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new BusinessException("Credenciais inválidas"));
 
         if (!passwordEncoder.matches(loginRequest.getSenha(), user.getSenha())) {
-            throw new RuntimeException("Credenciais inválidas");
+            throw new BusinessException("Credenciais inválidas");
         }
 
         if (!user.isAtivo()) {
-            throw new RuntimeException("Usuário inativo");
+            throw new BusinessException("Usuário inativo");
         }
 
         Set<String> roles = user.getRoles().stream()
