@@ -27,6 +27,8 @@ public class EnderecoCobranca {
     @Size(max = 100, message = "O bairro deve ter no máximo 100 caracteres")
     private String bairro;
 
+    private String andar;
+
     @Size(max = 100, message = "A cidade deve ter no máximo 100 caracteres")
     private String cidade;
 

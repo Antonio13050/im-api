@@ -64,7 +64,8 @@ public class Cliente {
         @AttributeOverride(name = "complemento", column = @Column(name = "cobranca_complemento")),
         @AttributeOverride(name = "bairro", column = @Column(name = "cobranca_bairro")),
         @AttributeOverride(name = "cidade", column = @Column(name = "cobranca_cidade")),
-        @AttributeOverride(name = "estado", column = @Column(name = "cobranca_estado"))
+        @AttributeOverride(name = "estado", column = @Column(name = "cobranca_estado")),
+        @AttributeOverride(name = "andar", column = @Column(name = "cobranca_andar"))
     })
     private EnderecoCobranca enderecoCobranca;
 
