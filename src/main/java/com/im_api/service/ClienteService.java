@@ -2,6 +2,7 @@ package com.im_api.service;
 
 import com.im_api.dto.ClienteRequestDTO;
 import com.im_api.dto.ClienteResponseDTO;
+import com.im_api.dto.ClienteFilterDTO;
 import com.im_api.exception.BusinessException;
 import com.im_api.mapper.ClienteMapper;
 import com.im_api.model.Cliente;
@@ -9,8 +10,12 @@ import com.im_api.model.DocumentoCliente;
 import com.im_api.model.User;
 import com.im_api.repository.ClienteRepository;
 import com.im_api.repository.UserRepository;
+import com.im_api.repository.spec.ClienteSpecification;
 import com.im_api.util.SecurityContextUtil;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -127,6 +132,31 @@ public class ClienteService {
         return clientes.stream()
                 .map(clienteMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ClienteResponseDTO> findAllPaged(Pageable pageable, ClienteFilterDTO filters) {
+        Long currentUserId = securityContextUtil.getCurrentUserIdAsLong();
+        
+        Specification<Cliente> spec = ClienteSpecification.withFilters(filters);
+
+        // Add scope filter based on user role
+        if (securityContextUtil.isGerente()) {
+            List<User> teamUsers = userRepository.findByGerenteId(currentUserId);
+            List<Long> teamIds = teamUsers.stream()
+                    .map(User::getUserId)
+                    .collect(Collectors.toList());
+            teamIds.add(currentUserId);
+            
+            Specification<Cliente> scopeSpec = (root, query, cb) -> root.get("corretorId").in(teamIds);
+            spec = spec.and(scopeSpec);
+        } else if (!securityContextUtil.isAdmin()) {
+            Specification<Cliente> scopeSpec = (root, query, cb) -> cb.equal(root.get("corretorId"), currentUserId);
+            spec = spec.and(scopeSpec);
+        }
+
+        Page<Cliente> clientesPage = clienteRepository.findAll(spec, pageable);
+        return clientesPage.map(clienteMapper::toDTO);
     }
 
     @Transactional

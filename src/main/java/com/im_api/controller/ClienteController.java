@@ -2,9 +2,13 @@ package com.im_api.controller;
 
 import com.im_api.dto.ClienteRequestDTO;
 import com.im_api.dto.ClienteResponseDTO;
+import com.im_api.dto.ClienteFilterDTO;
 import com.im_api.model.Cliente;
 import com.im_api.service.ClienteService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -32,8 +36,10 @@ public class ClienteController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ClienteResponseDTO>> findAll() {
-        List<ClienteResponseDTO> clientes = clienteService.findAll();
+    public ResponseEntity<Page<ClienteResponseDTO>> findAll(
+            @ModelAttribute ClienteFilterDTO filters,
+            @PageableDefault(size = 10, page = 0) Pageable pageable) {
+        Page<ClienteResponseDTO> clientes = clienteService.findAllPaged(pageable, filters);
         return ResponseEntity.ok(clientes);
     }
 

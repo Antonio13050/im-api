@@ -217,4 +217,23 @@ public class ImovelService {
 
         return imovelRepository.findAll(spec, pageable).map(imovelMapper::toDTO);
     }
+
+    @Transactional(readOnly = true)
+    public List<com.im_api.dto.ImovelResumoDTO> findAllResumo() {
+        Long currentUserId = securityContextUtil.getCurrentUserIdAsLong();
+        String currentUserRole = securityContextUtil.getCurrentUserRole();
+
+        if (securityContextUtil.isGerente()) {
+            List<User> teamUsers = userRepository.findByGerenteId(currentUserId);
+            List<Long> teamIds = teamUsers.stream()
+                    .map(User::getUserId)
+                    .collect(Collectors.toList());
+            teamIds.add(currentUserId);
+            return imovelRepository.findResumoByCorretorIdIn(teamIds);
+        } else if (currentUserRole.equals("CORRETOR")) {
+            return imovelRepository.findResumoByCorretorId(currentUserId);
+        }
+
+        return imovelRepository.findAllResumo();
+    }
 }

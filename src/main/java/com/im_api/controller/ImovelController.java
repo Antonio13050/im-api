@@ -31,18 +31,17 @@ public class ImovelController {
         return ResponseEntity.ok(imovelDTO);
     }
 
-//    @GetMapping
-//    public ResponseEntity<List<ImovelResponseDTO>> findAll() {
-//        List<ImovelResponseDTO> imoveis = imovelService.findAll();
-//        return ResponseEntity.ok(imoveis);
-//    }
-
     @GetMapping
     public ResponseEntity<Page<ImovelResponseDTO>> findAll(
             @ModelAttribute ImovelFilterDTO filters,
             @PageableDefault(size = 10, page = 0) final Pageable pageable) {
         Page<ImovelResponseDTO> imoveisPage = imovelService.findAllPaged(pageable, filters);
         return ResponseEntity.ok(imoveisPage);
+    }
+
+    @GetMapping("/resumo")
+    public ResponseEntity<List<com.im_api.dto.ImovelResumoDTO>> findAllResumo() {
+        return ResponseEntity.ok(imovelService.findAllResumo());
     }
 
     @PostMapping
