@@ -1,6 +1,7 @@
 package com.im_api.dto;
 
 import com.im_api.model.Endereco;
+import com.im_api.model.EnderecoCobranca;
 import com.im_api.model.Interesses;
 import lombok.*;
 
@@ -37,6 +38,40 @@ public class ClienteResponseDTO {
 
     // Endereço
     private Endereco endereco;
+
+    // Endereço de Cobrança
+    private EnderecoCobranca enderecoCobranca;
+
+    // Dados de Emprego
+    private String empresaTrabalho;
+    private String cargo;
+    private Integer tempoEmprego;
+    private BigDecimal rendaComplementar;
+    private Integer numeroDependentes;
+
+    // Dados do Cônjuge
+    private String conjugeNome;
+    private String conjugeCpf;
+    private BigDecimal conjugeRenda;
+
+    // Pessoa Jurídica
+    private String razaoSocial;
+    private String inscricaoEstadual;
+    private String inscricaoMunicipal;
+    private String nomeFantasia;
+    private LocalDate dataFundacao;
+    private BigDecimal faturamentoMensal;
+
+    // Contato de Emergência
+    private String contatoEmergenciaNome;
+    private String contatoEmergenciaTelefone;
+    private String contatoEmergenciaParentesco;
+
+    // Preferências de Pagamento
+    private Integer diaVencimentoPreferido;
+    private Boolean aceitaBoletoEmail;
+    private Boolean aceitaPixVencimento;
+    private String formaPagamentoPreferida;
 
     // Informações Financeiras
     private BigDecimal rendaMensal;

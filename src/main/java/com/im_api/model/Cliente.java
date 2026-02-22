@@ -55,6 +55,52 @@ public class Cliente {
     @Embedded
     private Endereco endereco;
 
+    // Endereço de Cobrança
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "cep", column = @Column(name = "cobranca_cep")),
+        @AttributeOverride(name = "rua", column = @Column(name = "cobranca_rua")),
+        @AttributeOverride(name = "numero", column = @Column(name = "cobranca_numero")),
+        @AttributeOverride(name = "complemento", column = @Column(name = "cobranca_complemento")),
+        @AttributeOverride(name = "bairro", column = @Column(name = "cobranca_bairro")),
+        @AttributeOverride(name = "cidade", column = @Column(name = "cobranca_cidade")),
+        @AttributeOverride(name = "estado", column = @Column(name = "cobranca_estado"))
+    })
+    private EnderecoCobranca enderecoCobranca;
+
+    // Dados de Emprego
+    private String empresaTrabalho;
+    private String cargo;
+    private Integer tempoEmprego;
+    private BigDecimal rendaComplementar;
+    private Integer numeroDependentes;
+
+    // Dados do Cônjuge
+    private String conjugeNome;
+    private String conjugeCpf;
+    private BigDecimal conjugeRenda;
+
+    // Pessoa Jurídica (apenas se for CNPJ)
+    private String razaoSocial;
+    private String inscricaoEstadual;
+    private String inscricaoMunicipal;
+    private String nomeFantasia;
+    private LocalDate dataFundacao;
+    private BigDecimal faturamentoMensal;
+
+    // Contato de Emergência
+    private String contatoEmergenciaNome;
+    private String contatoEmergenciaTelefone;
+    private String contatoEmergenciaParentesco;
+
+    // Preferências de Pagamento
+    private Integer diaVencimentoPreferido;
+    @Builder.Default
+    private Boolean aceitaBoletoEmail = true;
+    @Builder.Default
+    private Boolean aceitaPixVencimento = false;
+    private String formaPagamentoPreferida;
+
     // Informações Financeiras
     private BigDecimal rendaMensal;
     private String banco;

@@ -1,6 +1,7 @@
 package com.im_api.dto;
 
 import com.im_api.model.Endereco;
+import com.im_api.model.EnderecoCobranca;
 import com.im_api.model.Interesses;
 import com.im_api.validation.CpfCnpj;
 import com.im_api.validation.ValidPerfil;
@@ -66,6 +67,76 @@ public class ClienteRequestDTO {
     @Valid
     @NotNull(message = "O endereço é obrigatório")
     private Endereco endereco;
+
+    // Endereço de Cobrança
+    @Valid
+    private EnderecoCobranca enderecoCobranca;
+
+    // Dados de Emprego
+    @Size(max = 255, message = "A empresa deve ter no máximo 255 caracteres")
+    private String empresaTrabalho;
+
+    @Size(max = 100, message = "O cargo deve ter no máximo 100 caracteres")
+    private String cargo;
+
+    @Min(value = 0, message = "O tempo de emprego deve ser positivo")
+    private Integer tempoEmprego;
+
+    @PositiveOrZero(message = "A renda complementar deve ser positiva")
+    private BigDecimal rendaComplementar;
+
+    @Min(value = 0, message = "O número de dependentes deve ser positivo")
+    private Integer numeroDependentes;
+
+    // Dados do Cônjuge
+    @Size(max = 255, message = "O nome do cônjuge deve ter no máximo 255 caracteres")
+    private String conjugeNome;
+
+    @Size(max = 20, message = "O CPF do cônjuge deve ter no máximo 20 caracteres")
+    private String conjugeCpf;
+
+    @PositiveOrZero(message = "A renda do cônjuge deve ser positiva")
+    private BigDecimal conjugeRenda;
+
+    // Pessoa Jurídica (apenas se for CNPJ)
+    @Size(max = 255, message = "A razão social deve ter no máximo 255 caracteres")
+    private String razaoSocial;
+
+    @Size(max = 50, message = "A inscrição estadual deve ter no máximo 50 caracteres")
+    private String inscricaoEstadual;
+
+    @Size(max = 50, message = "A inscrição municipal deve ter no máximo 50 caracteres")
+    private String inscricaoMunicipal;
+
+    @Size(max = 255, message = "O nome fantasia deve ter no máximo 255 caracteres")
+    private String nomeFantasia;
+
+    @Past(message = "A data de fundação deve ser no passado")
+    private LocalDate dataFundacao;
+
+    @PositiveOrZero(message = "O faturamento mensal deve ser positivo")
+    private BigDecimal faturamentoMensal;
+
+    // Contato de Emergência
+    @Size(max = 255, message = "O nome do contato deve ter no máximo 255 caracteres")
+    private String contatoEmergenciaNome;
+
+    @Size(max = 20, message = "O telefone deve ter no máximo 20 caracteres")
+    private String contatoEmergenciaTelefone;
+
+    @Size(max = 50, message = "O parentesco deve ter no máximo 50 caracteres")
+    private String contatoEmergenciaParentesco;
+
+    // Preferências de Pagamento
+    @Min(value = 1, message = "O dia de vencimento deve ser entre 1 e 31")
+    @Max(value = 31, message = "O dia de vencimento deve ser entre 1 e 31")
+    private Integer diaVencimentoPreferido;
+
+    private Boolean aceitaBoletoEmail;
+    private Boolean aceitaPixVencimento;
+
+    @Size(max = 30, message = "A forma de pagamento deve ter no máximo 30 caracteres")
+    private String formaPagamentoPreferida;
 
     // Informações Financeiras
     @PositiveOrZero(message = "Renda mensal deve ser positiva")
